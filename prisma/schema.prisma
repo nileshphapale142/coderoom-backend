@@ -12,3 +12,57 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+model User {
+  id Int @id @default(autoincrement())
+  name String 
+  email String @unique
+  password String
+  isTeacher Boolean @default(false)
+  enrollmentNo String? @unique 
+}
+
+model Course {
+  id Int @id @default(autoincrement())
+  name String
+  code String @unique
+}
+
+model Test {
+  id Int @id @default(autoincrement())
+  startTime DateTime 
+  endTime DateTime 
+  allowedLanguages String[]
+  evaluationScheme String 
+}
+
+model Question {
+  id Int @id @default(autoincrement())
+  name String
+  statement String
+  points Int
+  solution String
+  templateCode String
+}
+
+model TestCase {
+  id Int @id @default(autoincrement())
+  input String
+  output String
+}
+
+model ExampleTestCase {
+  id Int @id @default(autoincrement())
+  input String
+  output String
+  explaination String
+}
+
+model Submission {
+  id Int @id @default(autoincrement())
+  code String
+  language String
+  time DateTime
+  status String
+}
