@@ -13,56 +13,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id Int @id @default(autoincrement())
-  name String 
-  email String @unique
-  password String
-  isTeacher Boolean @default(false)
-  enrollmentNo String? @unique 
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  isTeacher      Boolean         @default(false)
+  enrollmentNo   String?         @unique
+  createdCourses Course[]        @relation("TeacherCourses")
+  joinedCourses  CourseStudent[]
 }
 
 model Course {
-  id Int @id @default(autoincrement())
-  name String
-  code String @unique
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  code          String          @unique
+  teacherId     Int
+  teacher       User            @relation("TeacherCourses", fields: [teacherId], references: [id])
+  enrolledStudents CourseStudent[]
+}
+
+model CourseStudent {
+  userId   Int
+  courseId Int
+  user     User   @relation(fields: [userId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+
+  @@id([userId, courseId])
 }
 
 model Test {
-  id Int @id @default(autoincrement())
-  startTime DateTime 
-  endTime DateTime 
+  id               Int      @id @default(autoincrement())
+  startTime        DateTime
+  endTime          DateTime
   allowedLanguages String[]
-  evaluationScheme String 
+  evaluationScheme String
 }
 
 model Question {
-  id Int @id @default(autoincrement())
-  name String
-  statement String
-  points Int
-  solution String
+  id           Int    @id @default(autoincrement())
+  name         String
+  statement    String
+  points       Int
+  solution     String
   templateCode String
 }
 
 model TestCase {
-  id Int @id @default(autoincrement())
-  input String
+  id     Int    @id @default(autoincrement())
+  input  String
   output String
 }
 
 model ExampleTestCase {
-  id Int @id @default(autoincrement())
-  input String
-  output String
+  id           Int    @id @default(autoincrement())
+  input        String
+  output       String
   explaination String
 }
 
 model Submission {
-  id Int @id @default(autoincrement())
-  code String
+  id       Int      @id @default(autoincrement())
+  code     String
   language String
-  time DateTime
-  status String
+  time     DateTime
+  status   String
 }
