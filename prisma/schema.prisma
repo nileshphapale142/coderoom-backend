@@ -32,6 +32,7 @@ model Course {
   teacherId     Int
   teacher       User            @relation("TeacherCourses", fields: [teacherId], references: [id])
   enrolledStudents CourseStudent[]
+  tests Test[] @relation("CourseTests")
 }
 
 model CourseStudent {
@@ -45,10 +46,14 @@ model CourseStudent {
 
 model Test {
   id               Int      @id @default(autoincrement())
+  name             String
   startTime        DateTime
   endTime          DateTime
   allowedLanguages String[]
   evaluationScheme String
+  visibility       String
+  courseId         Int
+  course Course @relation("CourseTests", fields: [courseId], references: [id])
 }
 
 model Question {
