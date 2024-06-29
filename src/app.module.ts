@@ -7,6 +7,8 @@ import { CourseModule } from './course/course.module';
 import { CourseController } from './course/course.controller';
 import { TestModule } from './test/test.module';
 import { TestController } from './test/test.controller';
+import { UserProvider } from './user/user.service';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { TestController } from './test/test.controller';
     CourseModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TestModule,
+    UserModule,
   ],
   controllers: [UserController, CourseController, TestController],
   providers: [],

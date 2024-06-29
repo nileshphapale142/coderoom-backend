@@ -21,3 +21,9 @@ export class GetCourseDTO {
     @Transform(({value})  => parseInt(value))
     id: number
 }
+
+export class AddStudentDTO {
+    @IsString()
+    @IsNotEmpty()
+    courseCode: string;
+}
