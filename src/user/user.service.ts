@@ -26,17 +26,26 @@ export class UserProvider {
           where: { id: user.id },
           include: {
             joinedCourses: {
-              include: {
-                course: true,
-              },
+              select: {
+                course: {
+                  include: {
+                    teacher: {
+                      select: {
+                        name: true
+                      }
+                    }
+                  }
+                }
+              }
             },
           },
         });
 
-        courses = userInfo.joinedCourses;
+        courses = userInfo.joinedCourses.map((course) => course.course)
       }
 
       return courses;
+      
     } catch (err) {
       if (err instanceof PrismaClientUnknownRequestError)
         throw new NotFoundException('User not fouund');

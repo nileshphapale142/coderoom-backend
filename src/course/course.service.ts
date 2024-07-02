@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseDTO, GetCourseDTO } from './dto';
 import { CourseCodeGenerator } from 'src/utils';
@@ -23,6 +18,80 @@ export class CourseProvider {
       });
       if (course) return true;
       return false;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  private async getShortLeaderboard(courseId: number) {
+    try {
+      const course = await this.prismaService.course.findUnique({
+        where: {
+          id: courseId,
+        },
+        select: {
+          tests: {
+            select: {
+              questions: {
+                select: {
+                  studentPoints: {
+                    select: {
+                      user: {
+                        select: {
+                          id: true,
+                          name: true,
+                        },
+                      },
+                      points: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          enrolledStudents: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      let studentPoints = course.enrolledStudents.reduce(
+        (prev, { user }) => {
+          prev[user.id] = {
+            id: user.id,
+            points: 0,
+            name: user.name,
+          };
+
+          return prev;
+        },
+        {},
+      );
+
+      course.tests.map((test) =>
+        test.questions.map((que) =>
+          que.studentPoints.map(({ user, points }) => {
+            studentPoints[user.id].points += points;
+          }),
+        ),
+      );
+
+      //todo: limit number of students sent
+
+      let leaderboard = Object.entries(studentPoints)
+        .map(([uid, user]: [uid:string, user:any]) => {
+          return { name: user.name, points: user.points };
+        })
+        .sort((a, b) => b.points - a.points);
+
+      return leaderboard;
     } catch (err) {
       throw err;
     }
@@ -55,11 +124,28 @@ export class CourseProvider {
     try {
       const course = await this.prismaService.course.findUnique({
         where: { id: dto.id },
+        include: {
+          teacher: {
+            select: {
+              name: true,
+            },
+          },
+          tests: {
+            select: {
+              id: true,
+              name: true,
+              startTime: true,
+            },
+          },
+        },
       });
 
       if (!course) throw new NotFoundException('Course not found');
 
-      return course;
+      return {
+        ...course,
+        leaderboard: await this.getShortLeaderboard(dto.id),
+      };
     } catch (err) {
       throw err;
     }

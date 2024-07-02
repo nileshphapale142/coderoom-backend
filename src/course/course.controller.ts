@@ -7,7 +7,6 @@ import { User } from '@prisma/client';
 
 
 //TODO: 3. Create endpoint for updating neccessay course info (PUT/PATCH)
-//TODO: 4.  Add guard to all endpoints
 
 @UseGuards(JwtGuard)
 @Controller('course')

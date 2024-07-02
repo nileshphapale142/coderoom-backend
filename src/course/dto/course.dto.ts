@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsInt, IsNotEmpty, IsNumber, IsNumberString, IsString } from "class-validator";
+import { IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateCourseDTO {
     @IsString()
