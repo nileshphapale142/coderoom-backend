@@ -18,6 +18,11 @@ export class TestController {
         return this.testProvider.getTest(dto)
     }
 
+    @Get(':id/leaderboard') 
+    getLeaderboard(@Param() dto: GetTestDTO) {
+        return this.testProvider.getLeaderboard(dto)
+    }
+
     @Put('update')
     updateTest() {
         this.testProvider.updateTest()
