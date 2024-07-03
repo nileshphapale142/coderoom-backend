@@ -17,7 +17,7 @@ export class AuthProvider {
 
     async signUp(dto: SignUpDto) {
         const hashPass = await argon.hash(dto.password);
-
+        
         try {
             const user = await this.prismaService.user.create({
                 data: {
@@ -49,9 +49,7 @@ export class AuthProvider {
 
         const pwMatches = await argon.verify(user.password, dto.password);
         
-        if (!pwMatches) throw new ForbiddenException('Credentials not found')
-
-        // delete user.password
+        if (!pwMatches) throw new ForbiddenException('Wrong password')
 
         return this.signToken(user.id, user.email);
     }
@@ -65,7 +63,7 @@ export class AuthProvider {
         const secret = this.config.get('JWT_SECRET')
 
         const token = await this.jwt.signAsync(payload, { 
-            expiresIn: '120m',
+            expiresIn: '30d',
             secret: secret,
         })
 
