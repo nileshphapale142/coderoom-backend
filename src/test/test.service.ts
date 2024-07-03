@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTestDTO, GetTestDTO } from './dto';
 
@@ -28,13 +28,27 @@ export class TestProvider {
 
   async getTest(dto: GetTestDTO) {
     try {
+
+      //todo: maximum points and available points of a question
+
       const test = await this.prismaService.test.findUnique({
         where: {
           id: dto.id,
         },
+        select: {
+          name: true, 
+          id: true, 
+          questions: {
+            select: {
+              id: true,
+              name: true,
+              points: true
+            }
+          }
+        }
       });
 
-      if (!test) return new ForbiddenException('test not found');
+      if (!test) return new NotFoundException('Test not found');
 
       return test;
     } catch (err) {
