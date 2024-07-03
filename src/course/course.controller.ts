@@ -29,6 +29,11 @@ export class CourseController {
         return this.courseProvider.getCourse(dto)
     }
 
+    @Get(':id/leaderboard')
+    getLeaderboard(@Param() dto: GetCourseDTO) {
+        return this.courseProvider.getLeaderboard(dto)
+    }
+
 
     @Put('update')
     updateCourse() {
