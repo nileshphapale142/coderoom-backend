@@ -10,6 +10,7 @@ import { TestController } from './test/test.controller';
 import { UserModule } from './user/user.module';
 import { QuestionModule } from './question/question.module';
 import { QuestionController } from './question/question.controller';
+import { SubmissionModule } from './submission/submission.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { QuestionController } from './question/question.controller';
     TestModule,
     UserModule,
     QuestionModule,
+    SubmissionModule,
   ],
   controllers: [UserController, CourseController, TestController, QuestionController],
   providers: [],

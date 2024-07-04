@@ -191,7 +191,7 @@ export class CourseProvider {
       (prev, student) => {
         prev[student[0]] = {
           testPoints: {},
-          totalPoints: 0
+          totalPoints: 0,
         };
 
         prev[student[0]].testPoints = Object.entries(tests).reduce(
@@ -212,13 +212,17 @@ export class CourseProvider {
       test.questions.map((que) =>
         que.studentPoints.map(({ points, user }) => {
           leaderboard[user.id].testPoints[test.id].points += points;
-          leaderboard[user.id].totalPoints += points
+          leaderboard[user.id].totalPoints += points;
           return;
         }),
       ),
     );
 
-    return {students: students, tests: tests, leaderboard: leaderboard };
+    return {
+      students: students,
+      tests: tests,
+      leaderboard: leaderboard,
+    };
   }
 
   async addStudent(studentId: number, courseCode: string) {

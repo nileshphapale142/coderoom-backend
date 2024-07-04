@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { TestProvider } from './test.service';
 import { CreateTestDTO, GetTestDTO } from './dto';
+import { JwtGuard } from 'src/auth/guard';
 
+@UseGuards(JwtGuard)
 @Controller('test')
 export class TestController {
     constructor(private testProvider: TestProvider) {}
@@ -14,6 +16,16 @@ export class TestController {
     @Get(':id')
     getTest(@Param() dto: GetTestDTO) {
         return this.testProvider.getTest(dto)
+    }
+
+    @Get(':id/leaderboard') 
+    getLeaderboard(@Param() dto: GetTestDTO) {
+        return this.testProvider.getLeaderboard(dto)
+    }
+
+    @Get(':id/submissions')
+    getSubmissions(@Param() dto: GetTestDTO) {
+        return this.testProvider.getSubmissions(dto)
     }
 
     @Put('update')
