@@ -23,6 +23,11 @@ export class TestController {
         return this.testProvider.getLeaderboard(dto)
     }
 
+    @Get(':id/submissions')
+    getSubmissions(@Param() dto: GetTestDTO) {
+        return this.testProvider.getSubmissions(dto)
+    }
+
     @Put('update')
     updateTest() {
         this.testProvider.updateTest()

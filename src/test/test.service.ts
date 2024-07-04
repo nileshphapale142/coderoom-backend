@@ -149,5 +149,59 @@ export class TestProvider {
     }
   }
 
+  async getSubmissions(dto: GetTestDTO) {
+    try {
+      const test = await this.prismaService.test.findUnique({
+        where: { id: dto.id },
+        select: {
+          questions: {
+            select: {
+              id: true,
+              name: true,
+              StudnetSubmission: {
+                select: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                  submission: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!test) throw new NotFoundException('Test does not exist');
+
+      const submissions = test.questions.flatMap((question) => {
+        return question.StudnetSubmission.map(
+          ({ submission, user }) => {
+            return {
+              submission,
+              student: user,
+              question: {
+                id: question.id,
+                name: question.name,
+              },
+            };
+          },
+        );
+      });
+
+      submissions.sort(
+        (sub1, sub2) =>
+          sub2.submission.time.getTime() -
+          sub1.submission.time.getTime(),
+      );
+
+      return submissions;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   updateTest() {}
 }
