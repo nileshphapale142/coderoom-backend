@@ -11,6 +11,8 @@ import { UserModule } from './user/user.module';
 import { QuestionModule } from './question/question.module';
 import { QuestionController } from './question/question.controller';
 import { SubmissionModule } from './submission/submission.module';
+import { TempController } from './temp/temp.controller';
+import { TempService } from './temp/temp.service';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { SubmissionModule } from './submission/submission.module';
     QuestionModule,
     SubmissionModule,
   ],
-  controllers: [UserController, CourseController, TestController, QuestionController],
-  providers: [],
+  controllers: [UserController, CourseController, TestController, QuestionController, TempController],
+  providers: [TempService],
 })
 export class AppModule {}

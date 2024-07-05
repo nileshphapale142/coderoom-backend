@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Put, UseGuards, Param } from '@nestjs/common';
-import { JwtGuard } from 'src/auth/guard';
+import { JwtGuard } from '../auth/guard';
 import { CourseProvider } from './course.service';
 import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
-import { GetUser } from 'src/auth/decorator';
+import { GetUser } from '../auth/decorator';
 import { User } from '@prisma/client';
 
 
@@ -20,6 +20,7 @@ export class CourseController {
 
     @Post('addStudent')
     addStudent(@GetUser() user:User, @Body() dto: AddStudentDTO) {
+        //todo: add user id in the dto 
         return this.courseProvider.addStudent(user.id, dto.courseCode)
     }
 

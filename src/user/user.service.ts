@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserProvider {
@@ -44,7 +44,7 @@ export class UserProvider {
         courses = userInfo.joinedCourses.map((course) => course.course)
       }
 
-      return courses;
+      return {courses: courses};
       
     } catch (err) {
       if (err instanceof PrismaClientUnknownRequestError)
