@@ -23,7 +23,6 @@ model User {
 
   createdCourses Course[]
   joinedCourses  CourseStudent[]
-
   questionPoints    StudentQuestion[]
   StudnetSubmission StudnetSubmission[]
 }

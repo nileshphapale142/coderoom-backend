@@ -12,8 +12,8 @@ import {
   GetQuestionDTO,
   NewQuestionDTO,
 } from './dto';
-import { JwtGuard } from 'src/auth/guard';
-import { GetUser } from 'src/auth/decorator';
+import { JwtGuard } from '../auth/guard';
+import { GetUser } from '../auth/decorator';
 import { User } from '@prisma/client';
 
 @UseGuards(JwtGuard)

@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Put, UseGuards, Param } from '@nestjs/common';
-import { JwtGuard } from 'src/auth/guard';
+import { JwtGuard } from '../auth/guard';
 import { CourseProvider } from './course.service';
 import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
-import { GetUser } from 'src/auth/decorator';
+import { GetUser } from '../auth/decorator';
 import { User } from '@prisma/client';
 
 
@@ -14,15 +14,16 @@ export class CourseController {
     constructor(private courseProvider: CourseProvider) {}
 
     @Post('create') 
-    createCourse(@Body() dto: CreateCourseDTO) {
+    createCourse(@GetUser() user:User, @Body() dto: CreateCourseDTO) {
+        dto.teacherId = user.id;
         return this.courseProvider.createCourse(dto)
     }
 
     @Post('addStudent')
     addStudent(@GetUser() user:User, @Body() dto: AddStudentDTO) {
-        return this.courseProvider.addStudent(user.id, dto.courseCode)
+        dto.id = user.id;
+        return this.courseProvider.addStudent(dto)
     }
-
 
     @Get(':id')
     getCourse(@Param() dto: GetCourseDTO) {
