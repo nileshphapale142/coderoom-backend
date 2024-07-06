@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsInt, IsNotEmpty, IsNumber, IsNumberString, IsString } from "class-validator";
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateCourseDTO {
     @IsString()
@@ -9,10 +9,11 @@ export class CreateCourseDTO {
     @IsString()
     description: string
 
+    @IsOptional()
     @IsInt()
     @IsNotEmpty()
     @Transform(({value}) => parseInt(value))
-    teacherId: number
+    teacherId?: number
 }
 
 export class GetCourseDTO {
@@ -26,4 +27,10 @@ export class AddStudentDTO {
     @IsString()
     @IsNotEmpty()
     courseCode: string;
+
+    @IsOptional()
+    @IsNumber()
+    @IsNotEmpty()
+    @Transform(({value}) => parseInt(value))
+    id?: number;
 }

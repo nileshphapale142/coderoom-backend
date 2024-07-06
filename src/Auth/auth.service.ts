@@ -17,7 +17,6 @@ export class AuthProvider {
 
     async signUp(dto: SignUpDto) {
         const hashPass = await argon.hash(dto.password);
-        
         try {
             const user = await this.prismaService.user.create({
                 data: {
@@ -63,7 +62,7 @@ export class AuthProvider {
         const secret = this.config.get('JWT_SECRET')
 
         const token = await this.jwt.signAsync(payload, { 
-            expiresIn: '120m',
+            expiresIn: '30d',
             secret: secret,
         })
 

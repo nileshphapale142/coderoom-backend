@@ -16,7 +16,7 @@ export class SignUpDto {
     password: string;
 
     @IsBoolean()
-    @Transform(({value}) => value === "true")
+    @Transform(({value}) => value === "true" || value === true)
     isTeacher: boolean;
 }
 

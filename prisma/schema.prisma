@@ -14,32 +14,38 @@ datasource db {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  name           String
-  email          String          @unique
-  password       String
-  isTeacher      Boolean         @default(false)
-  enrollmentNo   String?         @unique
-  createdCourses Course[]        @relation("TeacherCourses")
+  id           Int     @id @default(autoincrement())
+  name         String
+  email        String  @unique
+  password     String
+  isTeacher    Boolean @default(false)
+  enrollmentNo String? @unique
+
+  createdCourses Course[]
   joinedCourses  CourseStudent[]
+  questionPoints    StudentQuestion[]
+  StudnetSubmission StudnetSubmission[]
 }
 
 model Course {
-  id            Int             @id @default(autoincrement())
-  name          String
-  description   String
-  code          String          @unique
-  teacherId     Int
-  teacher       User            @relation("TeacherCourses", fields: [teacherId], references: [id])
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  code        String @unique
+
+  teacherId        Int
   enrolledStudents CourseStudent[]
-  tests Test[] @relation("CourseTests")
+
+  teacher User   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  tests   Test[]
 }
 
 model CourseStudent {
   userId   Int
   courseId Int
-  user     User   @relation(fields: [userId], references: [id])
-  course   Course @relation(fields: [courseId], references: [id])
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@id([userId, courseId])
 }
@@ -52,8 +58,11 @@ model Test {
   allowedLanguages String[]
   evaluationScheme String
   visibility       String
-  courseId         Int
-  course Course @relation("CourseTests", fields: [courseId], references: [id])
+
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  questions Question[]
 }
 
 model Question {
@@ -63,6 +72,46 @@ model Question {
   points       Int
   solution     String
   templateCode String
+
+  testId Int
+  Test   Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  studentPoints     StudentQuestion[]
+  StudnetSubmission StudnetSubmission[]
+}
+
+model StudentQuestion {
+  userId     Int
+  questionId Int
+  points     Int
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, questionId])
+}
+
+model Submission {
+  id       Int      @id @default(autoincrement())
+  code     String
+  language String
+  time     DateTime
+  status   String
+
+  StudnetSubmission StudnetSubmission[]
+}
+
+// todo: student spelling
+model StudnetSubmission {
+  userId       Int
+  questionId   Int
+  submissionId Int
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, questionId, submissionId])
 }
 
 model TestCase {
@@ -76,12 +125,4 @@ model ExampleTestCase {
   input        String
   output       String
   explaination String
-}
-
-model Submission {
-  id       Int      @id @default(autoincrement())
-  code     String
-  language String
-  time     DateTime
-  status   String
 }
