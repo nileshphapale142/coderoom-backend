@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCourseDTO, GetCourseDTO } from './dto';
+import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
 import { CourseCodeGenerator } from '../utils';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
@@ -18,6 +22,17 @@ export class CourseProvider {
     } catch (err) {
       throw err;
     }
+  }
+
+  private async isTeacher(id: number): Promise<boolean> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: id },
+      select: {
+        isTeacher: true,
+      },
+    });
+
+    return user.isTeacher;
   }
 
   private async getCourseInfo(courseId: number) {
@@ -105,6 +120,10 @@ export class CourseProvider {
   }
 
   async createCourse(dto: CreateCourseDTO) {
+    let isUserTeacher = await this.isTeacher(dto.teacherId);
+    if (!isUserTeacher)
+      throw new ForbiddenException('Course creation not allowed');
+
     let courseCode;
 
     do {
@@ -119,9 +138,18 @@ export class CourseProvider {
           code: courseCode,
           teacherId: dto.teacherId,
         },
+        include: {
+          teacher: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
-      return course;
+      delete course.teacherId;
+
+      return { course };
     } catch (err) {
       throw err;
     }
@@ -150,10 +178,12 @@ export class CourseProvider {
       });
 
       if (!course) throw new NotFoundException('Course not found');
-
+      const leaderboard = await this.getShortLeaderboard(dto.id);
       return {
-        ...course,
-        leaderboard: await this.getShortLeaderboard(dto.id),
+        course: {
+          ...course,
+          leaderboard,
+        },
       };
     } catch (err) {
       throw err;
@@ -225,10 +255,17 @@ export class CourseProvider {
     };
   }
 
-  async addStudent(studentId: number, courseCode: string) {
+  async addStudent(dto: AddStudentDTO) {
     const course = await this.prismaService.course.findUnique({
       where: {
-        code: courseCode,
+        code: dto.courseCode,
+      },
+      include: {
+        teacher: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -239,17 +276,19 @@ export class CourseProvider {
         await this.prismaService.courseStudent.create({
           data: {
             courseId: course.id,
-            userId: studentId,
+            userId: dto.id,
           },
         });
 
-      return { courseId: course.id };
+      delete course.teacherId;
+
+      return { course };
     } catch (error) {
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        return { courseId: course.id };
+        return { course };
       }
       throw error;
     }

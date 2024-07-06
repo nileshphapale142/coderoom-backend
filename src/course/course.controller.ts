@@ -14,16 +14,16 @@ export class CourseController {
     constructor(private courseProvider: CourseProvider) {}
 
     @Post('create') 
-    createCourse(@Body() dto: CreateCourseDTO) {
+    createCourse(@GetUser() user:User, @Body() dto: CreateCourseDTO) {
+        dto.teacherId = user.id;
         return this.courseProvider.createCourse(dto)
     }
 
     @Post('addStudent')
     addStudent(@GetUser() user:User, @Body() dto: AddStudentDTO) {
-        //todo: add user id in the dto 
-        return this.courseProvider.addStudent(user.id, dto.courseCode)
+        dto.id = user.id;
+        return this.courseProvider.addStudent(dto)
     }
-
 
     @Get(':id')
     getCourse(@Param() dto: GetCourseDTO) {

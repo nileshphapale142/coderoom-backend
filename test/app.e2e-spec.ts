@@ -4,6 +4,8 @@ import * as pactum from 'pactum';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
+import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
+import { IsNumber, IsString } from 'class-validator';
 
 describe('App e2e', () => {
   let app;
@@ -69,7 +71,40 @@ describe('App e2e', () => {
           .spec()
           .post(`/auth/signup`)
           .withBody(dto)
-          .expectStatus(201);
+          .expectStatus(201)
+          .stores('adamAt', 'access_token');
+      });
+
+      it('sign up student ursa major', () => {
+        const dto: SignUpDto = {
+          name: 'Ursa Major',
+          email: 'ursa@gmail.com',
+          password: '123',
+          isTeacher: false,
+        };
+
+        return pactum
+          .spec()
+          .post(`/auth/signup`)
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('ursaMajAt', 'access_token');
+      });
+
+      it('create student ursa minor', () => {
+        const dto: SignUpDto = {
+          name: 'Ursa minor',
+          email: 'ursamin@gmail.com',
+          password: '123',
+          isTeacher: false,
+        };
+
+        return pactum
+          .spec()
+          .post(`/auth/signup`)
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('ursaMinAt', 'access_token');
       });
     });
 
@@ -115,7 +150,7 @@ describe('App e2e', () => {
           .post('/auth/signin')
           .withBody(dto)
           .expectStatus(201)
-          .stores('userAt', 'access_token')
+          .stores('userAt', 'access_token');
       });
     });
   });
@@ -136,24 +171,177 @@ describe('App e2e', () => {
           .withHeaders({
             Authorization: 'Bearer $S{userAt}',
           })
-          .expectStatus(200)
+          .expectStatus(200);
       });
     });
   });
 
   describe('Course', () => {
+    const courseSchema = {
+      type: 'object',
+      properties: {
+        course: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'number',
+            },
+            name: {
+              type: 'string',
+            },
+            description: {
+              type: 'string',
+            },
+            code: {
+              type: 'string',
+            },
+            teacher: {
+              type: 'object',
+              properties: {
+                name: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
     describe('Create course', () => {
-      it.todo('should create new course ');
+      it('unauthorized: no token', () => {
+        const dto: CreateCourseDTO = {
+          name: 'Course 1',
+          description: 'First course',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/create')
+          .withBody(dto)
+          .expectStatus(401);
+      });
+
+      it('unauthorized: student', () => {
+        const dto: CreateCourseDTO = {
+          name: 'Course 1',
+          description: 'First course',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/create')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(403);
+      });
+
+      it('should create new course', () => {
+        const dto: CreateCourseDTO = {
+          name: 'Course 1',
+          description: 'First course',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/create')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(201)
+          .expectJsonSchema(courseSchema)
+          .stores('course1Code', 'course.code')
+          .stores('course1Id', 'course.id');
+      });
     });
+
     describe('Add student', () => {
-      it.todo('should join a student to a cousrse');
+      it('wrong course code', () => {
+        const dto: AddStudentDTO = {
+          courseCode: 'dafda',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/addStudent')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(404);
+      });
+
+      it('ursa major to course 1', () => {
+        const dto: AddStudentDTO = {
+          courseCode: '$S{course1Code}',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/addStudent')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(201)
+          .expectJsonSchema(courseSchema);
+      });
+
+      it('ursa minor to course 1', () => {
+        const dto: AddStudentDTO = {
+          courseCode: '$S{course1Code}',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/addStudent')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMinAt}')
+          .expectStatus(201)
+          .expectJsonSchema(courseSchema);
+      });
+
+      it('already joined', () => {
+        const dto: AddStudentDTO = {
+          courseCode: '$S{course1Code}',
+        };
+
+        return pactum
+          .spec()
+          .post('/course/addStudent')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMinAt}')
+          .expectStatus(201)
+          .expectJsonSchema(courseSchema)
+          .inspect();
+      });
     });
+
     describe('Get course', () => {
-      it.todo('should get course info');
+      it('course not found', () => {
+        return pactum
+          .spec()
+          .get('/course/-1')
+          .withBearerToken('$S{ursaMinAt}')
+          .expectStatus(404);
+      });
+
+      it('get course info', () => {
+        return pactum
+          .spec()
+          .get('/course/$S{course1Id}')
+          .withBearerToken('$S{ursaMinAt}')
+          .expectStatus(200);
+      });
+
+      it.todo('tests with correct structure')
     });
+
     describe('Get leaderboard', () => {
-      it.todo('should get course leaderboard');
+      it('should get course leaderboard', () => {
+        return pactum
+          .spec()
+          .get('/course/$S{course1Id}/leaderboard')
+          .withBearerToken('$S{ursaMinAt}')
+          .expectStatus(200)
+      });
     });
+
     describe('Edit course', () => {
       it.todo('should edit course info');
     });
