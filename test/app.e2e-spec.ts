@@ -5,7 +5,7 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
-import { IsNumber, IsString } from 'class-validator';
+import { CreateTestDTO } from 'src/test/dto';
 
 describe('App e2e', () => {
   let app;
@@ -307,8 +307,7 @@ describe('App e2e', () => {
           .withBody(dto)
           .withBearerToken('$S{ursaMinAt}')
           .expectStatus(201)
-          .expectJsonSchema(courseSchema)
-          .inspect();
+          .expectJsonSchema(courseSchema);
       });
     });
 
@@ -329,7 +328,7 @@ describe('App e2e', () => {
           .expectStatus(200);
       });
 
-      it.todo('tests with correct structure')
+      it.todo('tests with correct structure');
     });
 
     describe('Get leaderboard', () => {
@@ -338,7 +337,7 @@ describe('App e2e', () => {
           .spec()
           .get('/course/$S{course1Id}/leaderboard')
           .withBearerToken('$S{ursaMinAt}')
-          .expectStatus(200)
+          .expectStatus(200);
       });
     });
 
@@ -349,16 +348,110 @@ describe('App e2e', () => {
 
   describe('Test', () => {
     describe('New Test', () => {
-      it.todo('should create new test in a course');
+      it('unauthorized: not course teacher', () => {
+        const dto = {
+          name: 'Test 1',
+          languages: ['Cpp', 'C'],
+          evaluationScheme: 'static',
+          visibility: 'private',
+          courseId: '$S{course1Id}',
+          date: '2024-07-06',
+          startTime: '12:00',
+          endTime: '15:00',
+        };
+
+        return pactum
+          .spec()
+          .post('/test/new')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(403);
+      });
+
+      it('course does not exist', () => {
+        const dto:CreateTestDTO = {
+          name: 'Test 1',
+          languages: ['Cpp', 'C'],
+          evaluationScheme: 'static',
+          visibility: 'private',
+          courseId: -1,
+          date: '2024-07-06',
+          startTime: '12:00',
+          endTime: '15:00',
+        };
+
+        return pactum
+          .spec()
+          .post('/test/new')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(404);
+      });
+
+      it('create test in a course', () => {
+        const dto = {
+          name: 'Test 1',
+          languages: ['Cpp', 'C'],
+          evaluationScheme: 'static',
+          visibility: 'private',
+          courseId: '$S{course1Id}',
+          date: '2024-07-06',
+          startTime: '12:00',
+          endTime: '15:00',
+        };
+
+        return pactum
+          .spec()
+          .post('/test/new')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(201)
+          .stores("test1Id", "test.id")
+      });
     });
+
     describe('Get test', () => {
-      it.todo('should get test info alongside question list');
+      it('test does not exist', () => {
+        return pactum
+          .spec()
+          .get('/test/-1')
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(404)
+      });
+
+      it('get test info', () => {
+        return pactum
+          .spec()
+          .get('/test/$S{test1Id}')
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+      });
+
     });
+
     describe('Get leaderboard', () => {
-      it.todo('should get test leaderboard');
+      it('get leaderboard', () => {
+        return pactum
+          .spec()
+          .get('/test/$S{test1Id}/leaderboard')
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+      });
     });
+
     describe('Get submissions', () => {
-      it.todo('shoudl get test submissions');
+      it('get test submissions', () => {
+        return pactum
+          .spec()
+          .get('/test/$S{test1Id}/submissions')
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+          .inspect();
+      });
+    });
+    
+    describe('Edit test', () => {
+      it.todo('edit test info');
     });
   });
 });

@@ -7,10 +7,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
 import { CourseCodeGenerator } from '../utils';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { UserProvider } from '../user/user.service';
 
 @Injectable()
 export class CourseProvider {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: PrismaService, private  userService: UserProvider) {}
 
   private async checkCourseExists(code: string) {
     try {
@@ -22,17 +23,6 @@ export class CourseProvider {
     } catch (err) {
       throw err;
     }
-  }
-
-  private async isTeacher(id: number): Promise<boolean> {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: id },
-      select: {
-        isTeacher: true,
-      },
-    });
-
-    return user.isTeacher;
   }
 
   private async getCourseInfo(courseId: number) {
@@ -120,7 +110,7 @@ export class CourseProvider {
   }
 
   async createCourse(dto: CreateCourseDTO) {
-    let isUserTeacher = await this.isTeacher(dto.teacherId);
+    let isUserTeacher = await this.userService.isTeacher(dto.teacherId);
     if (!isUserTeacher)
       throw new ForbiddenException('Course creation not allowed');
 

@@ -1,13 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestDTO, GetTestDTO } from './dto';
+import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+// import { UserProvider } from '../user/user.service';
 
 @Injectable()
 export class TestProvider {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    // private userService: UserProvider,
+  ) {}
 
   async createTest(dto: CreateTestDTO) {
     try {
+      const course = await this.prismaService.course.findUnique({
+        where: { id: dto.courseId },
+        select: {
+          teacherId: true,
+        },
+      });
+
+      if (!course) throw new NotFoundException('Course not found');
+
+      if (course.teacherId !== dto.teacherId)
+        throw new ForbiddenException('Not course creator');
+
       const test = await this.prismaService.test.create({
         data: {
           name: dto.name,
@@ -20,7 +41,7 @@ export class TestProvider {
         },
       });
 
-      return test;
+      return { test };
     } catch (err) {
       throw err;
     }
@@ -47,9 +68,9 @@ export class TestProvider {
         },
       });
 
-      if (!test) return new NotFoundException('Test not found');
+      if (!test) throw new NotFoundException('Test not found');
 
-      return test;
+      return {test};
     } catch (err) {
       throw err;
     }
@@ -150,6 +171,9 @@ export class TestProvider {
   }
 
   async getSubmissions(dto: GetTestDTO) {
+
+    //todo: submission view only for course teacher?
+     
     try {
       const test = await this.prismaService.test.findUnique({
         where: { id: dto.id },
@@ -197,7 +221,7 @@ export class TestProvider {
           sub1.submission.time.getTime(),
       );
 
-      return submissions;
+      return {submissions};
     } catch (err) {
       throw err;
     }

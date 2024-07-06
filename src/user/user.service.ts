@@ -7,6 +7,17 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UserProvider {
   constructor(private prismaService: PrismaService) {}
 
+  async isTeacher(id: number): Promise<boolean> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: id },
+      select: {
+        isTeacher: true,
+      },
+    });
+
+    return user.isTeacher;
+  }
+
   async getCourses(user: User) {
     try {
       let courses = [];
@@ -19,8 +30,7 @@ export class UserProvider {
           },
         });
 
-        courses = userInfo.createdCourses
-
+        courses = userInfo.createdCourses;
       } else {
         const userInfo = await this.prismaService.user.findUnique({
           where: { id: user.id },
@@ -31,21 +41,22 @@ export class UserProvider {
                   include: {
                     teacher: {
                       select: {
-                        name: true
-                      }
-                    }
-                  }
-                }
-              }
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         });
 
-        courses = userInfo.joinedCourses.map((course) => course.course)
+        courses = userInfo.joinedCourses.map(
+          (course) => course.course,
+        );
       }
 
-      return {courses: courses};
-      
+      return { courses: courses };
     } catch (err) {
       if (err instanceof PrismaClientUnknownRequestError)
         throw new NotFoundException('User not fouund');

@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsDateString, IsInt, IsNotEmpty, IsString, IsTimeZone } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, IsTimeZone } from "class-validator";
 import { IsTimeString } from "../validator";
 
 export class CreateTestDTO {
@@ -36,6 +36,11 @@ export class CreateTestDTO {
     @IsDateString()
     @IsNotEmpty()
     date: string
+
+    @IsOptional()
+    @IsInt()
+    @Transform(({value}) => parseInt(value))
+    teacherId?: number;
 }
 
 export class GetTestDTO {
