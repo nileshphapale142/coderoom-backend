@@ -21,10 +21,10 @@ model User {
   isTeacher    Boolean @default(false)
   enrollmentNo String? @unique
 
-  createdCourses Course[]
-  joinedCourses  CourseStudent[]
+  createdCourses    Course[]
+  joinedCourses     CourseStudent[]
   questionPoints    StudentQuestion[]
-  StudnetSubmission StudnetSubmission[]
+  StudentSubmission StudentSubmission[]
 }
 
 model Course {
@@ -66,20 +66,59 @@ model Test {
 }
 
 model Question {
-  id           Int    @id @default(autoincrement())
-  name         String
-  statement    String
-  points       Int
-  solution     String
-  templateCode String
+  id        Int    @id @default(autoincrement())
+  name      String
+  statement String
+  points    Int
 
   testId Int
   Test   Test @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   studentPoints     StudentQuestion[]
-  StudnetSubmission StudnetSubmission[]
+  StudentSubmission StudentSubmission[]
+  testCases         TestCase[]
+
+  solution      Code[] @relation("QuestionSolution")
+  executionCode Code[] @relation("QuestionExecution")
+
+  inputs  IO[] @relation("InputRelations")
+  outputs IO[] @relation("OutputRelations")
 }
 
+model TestCase {
+  id     Int    @id @default(autoincrement())
+  input  String
+  output String
+
+  questionId Int
+  Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model IO {
+  id   Int    @id @default(autoincrement())
+  type String
+  name String
+
+  inputQuestionId  Int?
+  outputQuestionId Int?
+  inputQuestion    Question? @relation("InputRelations", fields: [inputQuestionId], references: [id], onDelete: Cascade)
+  outputQuestion   Question? @relation("OutputRelations", fields: [outputQuestionId], references: [id], onDelete: Cascade)
+
+  @@unique([inputQuestionId, outputQuestionId])
+}
+
+model Code {
+  id       Int    @id @default(autoincrement())
+  language String
+  code     String
+
+  solQueId     Int?
+  execQueId    Int?
+  solQuestion  Question? @relation("QuestionSolution", fields: [solQueId], references: [id])
+  execQuestion Question? @relation("QuestionExecution", fields: [execQueId], references: [id])
+}
+
+//todo: change name to student points
 model StudentQuestion {
   userId     Int
   questionId Int
@@ -98,11 +137,10 @@ model Submission {
   time     DateTime
   status   String
 
-  StudnetSubmission StudnetSubmission[]
+  StudentSubmission StudentSubmission[]
 }
 
-// todo: student spelling
-model StudnetSubmission {
+model StudentSubmission {
   userId       Int
   questionId   Int
   submissionId Int
@@ -112,12 +150,6 @@ model StudnetSubmission {
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
   @@id([userId, questionId, submissionId])
-}
-
-model TestCase {
-  id     Int    @id @default(autoincrement())
-  input  String
-  output String
 }
 
 model ExampleTestCase {

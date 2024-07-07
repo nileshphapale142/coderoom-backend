@@ -22,11 +22,10 @@ export class SubmissionProvider {
         },
       });
 
-      //todo: student spelling
       //todo: add student points if first accepted submission
 
       const studentSubmission =
-        await this.prismaService.studnetSubmission.create({
+        await this.prismaService.studentSubmission.create({
           data: {
             userId: dto.studentId,
             questionId: dto.questionId,
@@ -34,7 +33,7 @@ export class SubmissionProvider {
           },
         });
 
-      return submission;
+      return {submission};
 
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError)

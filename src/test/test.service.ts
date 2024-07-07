@@ -182,7 +182,7 @@ export class TestProvider {
             select: {
               id: true,
               name: true,
-              StudnetSubmission: {
+              StudentSubmission: {
                 select: {
                   user: {
                     select: {
@@ -201,7 +201,7 @@ export class TestProvider {
       if (!test) throw new NotFoundException('Test does not exist');
 
       const submissions = test.questions.flatMap((question) => {
-        return question.StudnetSubmission.map(
+        return question.StudentSubmission.map(
           ({ submission, user }) => {
             return {
               submission,

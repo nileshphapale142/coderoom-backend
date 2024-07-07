@@ -16,18 +16,53 @@ export class QuestionProvider {
 
   async createQuestion(dto: NewQuestionDTO) {
     try {
-      const question = await this.prismaService.question.create({
+      let question = await this.prismaService.question.create({
         data: {
           name: dto.name,
-          statement: 'demo statment',
-          points: 100,
-          solution: 'demo solution',
-          templateCode: 'demo code',
+          statement: dto.description,
+          points: dto.points,
           testId: dto.testId,
         },
       });
 
-      return question;
+      const solution = await this.prismaService.code.create({
+        data: {
+          solQueId: question.id,
+          code: dto.solutionCode.code,
+          language: dto.solutionCode.language,
+        },
+      });
+
+      const inputs = await this.prismaService.iO.createMany({
+        data: dto.inputs.map((input) => {
+          return {
+            inputQuestionId: question.id,
+            type: input.type,
+            name: input.name,
+          };
+        }),
+      });
+
+      const output = await  this.prismaService.iO.create({
+        data: {
+         outputQuestionId: question.id,
+         type: dto.output.type,
+         name: dto.output.name 
+        }
+      })
+
+      //todo: add test cases
+
+      question = await this.prismaService.question.findUnique({
+        where: {id: question.id},
+        include: {
+          solution: true,
+          inputs: true,
+          outputs: true
+        }
+      })
+
+      return { question };
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError)
         throw new ConflictException('Question already exists');
