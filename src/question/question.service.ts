@@ -10,6 +10,7 @@ import {
   PrismaClientUnknownRequestError,
 } from '@prisma/client/runtime/library';
 import { GeminiService } from '../gemini/gemini.service';
+import { copyFileSync } from 'fs';
 
 @Injectable()
 export class QuestionProvider {
@@ -17,6 +18,87 @@ export class QuestionProvider {
     private prismaService: PrismaService,
     private geminiService: GeminiService,
   ) {}
+
+  private generateCodePrompt(lang: string, dto: NewQuestionDTO) {
+    const prompt = `
+        only generate code, nothing else than that not even explaination and heading
+
+code:
+#include <bits/stdc++.h>
+
+<define_solution_function_with_arguments_${dto.inputs.reduce(
+      (prev, input) => {
+        prev += `${input.name} and `;
+        return prev;
+      },
+      '',
+    )} and_return_type_${dto.output.type}>
+
+bool ExecuteTestCaes()
+{
+${dto.inputs.reduce((prev, input) => {
+  prev += `<declare and take_${input.type}_input_named_${input.name}>\n`;
+  return prev;
+}, '')}
+
+<declare and take_${dto.output.type}_input_named_expectedOutput>
+
+<call_solution_function_with_arguments_${dto.inputs.reduce(
+      (prev, input) => {
+        prev += `${input.name} and `;
+        return prev;
+      },
+      '',
+    )}>
+
+    <Compare expected output and function output>
+    <if output is nd-array compare individual elements>
+    <if output is string compare individual characters>
+    <else compare directly>
+
+}
+
+int main()
+{
+
+int numTestCases;
+cin >> numTestCases;
+
+while (numTestCases--)
+{
+bool testResult = ExecuteTestCaes();
+if (!testResult) break;
+}
+
+return 0;
+}
+
+
+transform above code in equivalent ${lang} code
+perform required instructions mentioned in angle brackets
+don't write print statements
+      `;
+
+    return prompt;
+  }
+
+  private async getCodes(languages: string[], dto: NewQuestionDTO) {
+    const codePromises = languages.map(async (lang) => {
+      const prompt = this.generateCodePrompt(
+        lang.toLocaleLowerCase(),
+        dto,
+      );
+      const { text } = await this.geminiService.generateText(prompt);
+      let code = text.substring(text.indexOf('\n') + 1);
+      code = code.substring(0, code.lastIndexOf('\n'));
+
+      return { language: lang, code };
+    });
+
+    const codes = await Promise.all(codePromises);
+
+    return codes;
+  }
 
   async createQuestion(dto: NewQuestionDTO) {
     try {
@@ -55,7 +137,28 @@ export class QuestionProvider {
         },
       });
 
+      const test = await this.prismaService.test.findUnique({
+        where: { id: dto.testId },
+        select: {
+          allowedLanguages: true,
+        },
+      });
+
       //todo: add test cases
+
+      const codes = await this.getCodes(test.allowedLanguages, dto);
+
+      const executionCodes = await this.prismaService.code.createMany(
+        {
+          data: codes.map((code) => {
+            return {
+              execQueId: question.id,
+              code: code.code,
+              language: code.language,
+            };
+          }),
+        },
+      );
 
       question = await this.prismaService.question.findUnique({
         where: { id: question.id },
@@ -63,13 +166,11 @@ export class QuestionProvider {
           solution: true,
           inputs: true,
           outputs: true,
+          executionCode: true,
         },
       });
 
-      const { text } = await this.geminiService.generateText("What are you doing?")
-
-      return { question, text };
-
+      return { question };
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError)
         throw new ConflictException('Question already exists');

@@ -466,10 +466,10 @@ describe('App e2e', () => {
           testCases: 'enter a test cases (io) here',
           testId: 1,
           inputs: [
-            { type: 'array of int', name: 'nums' },
+            { type: 'string', name: 'nums' },
             { type: 'int', name: 'n' },
           ],
-          output: { type: 'int', name: 'nameNotNecessary' },
+          output: { type: 'string', name: 'nameNotNecessary' },
           solutionCode: {
             language: 'python',
             code: "print('Hello World')",
@@ -483,7 +483,7 @@ describe('App e2e', () => {
           .withBody({ ...dto, testId: '$S{test1Id}' })
           .expectStatus(201)
           .inspect()
-          .withRequestTimeout(4500);
+          .withRequestTimeout(20000);
       });
 
       it.todo('Get question');

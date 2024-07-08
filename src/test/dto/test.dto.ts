@@ -27,6 +27,7 @@ export class CreateTestDTO {
     @IsArray()
     @ArrayNotEmpty()
     @IsString({each: true})
+    @Transform(({value})=> value.map((str:string) => str.toLowerCase()))
     languages: string[];
 
     @IsString()
