@@ -9,10 +9,14 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
 } from '@prisma/client/runtime/library';
+import { GeminiService } from '../gemini/gemini.service';
 
 @Injectable()
 export class QuestionProvider {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private geminiService: GeminiService,
+  ) {}
 
   async createQuestion(dto: NewQuestionDTO) {
     try {
@@ -43,26 +47,29 @@ export class QuestionProvider {
         }),
       });
 
-      const output = await  this.prismaService.iO.create({
+      const output = await this.prismaService.iO.create({
         data: {
-         outputQuestionId: question.id,
-         type: dto.output.type,
-         name: dto.output.name 
-        }
-      })
+          outputQuestionId: question.id,
+          type: dto.output.type,
+          name: dto.output.name,
+        },
+      });
 
       //todo: add test cases
 
       question = await this.prismaService.question.findUnique({
-        where: {id: question.id},
+        where: { id: question.id },
         include: {
           solution: true,
           inputs: true,
-          outputs: true
-        }
-      })
+          outputs: true,
+        },
+      });
 
-      return { question };
+      const { text } = await this.geminiService.generateText("What are you doing?")
+
+      return { question, text };
+
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError)
         throw new ConflictException('Question already exists');

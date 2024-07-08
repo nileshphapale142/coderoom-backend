@@ -23,7 +23,6 @@ export class QuestionController {
 
   @Post('new')
   createQuestion(@Body() dto: NewQuestionDTO) {
-    console.log({ dto: dto });
     return this.questionProvider.createQuestion(dto);
   }
 

@@ -445,8 +445,7 @@ describe('App e2e', () => {
           .spec()
           .get('/test/$S{test1Id}/submissions')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(200)
-          .inspect();
+          .expectStatus(200)  
       });
     });
 
@@ -458,6 +457,8 @@ describe('App e2e', () => {
   describe('Question', () => {
     describe('Create', () => {
       it('Create a question', () => {
+
+
         const dto: NewQuestionDTO = {
           name: 'Two Sum',
           description: 'description',
@@ -481,7 +482,8 @@ describe('App e2e', () => {
           .withBearerToken('$S{adamAt}')
           .withBody({ ...dto, testId: '$S{test1Id}' })
           .expectStatus(201)
-          .inspect();
+          .inspect()
+          .withRequestTimeout(4500);
       });
 
       it.todo('Get question');

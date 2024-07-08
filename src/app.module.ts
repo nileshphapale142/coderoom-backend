@@ -11,6 +11,7 @@ import { UserModule } from './user/user.module';
 import { QuestionModule } from './question/question.module';
 import { QuestionController } from './question/question.controller';
 import { SubmissionModule } from './submission/submission.module';
+import { GeminiModule } from './gemini/gemini.module';
 
 
 @Module({
@@ -23,6 +24,7 @@ import { SubmissionModule } from './submission/submission.module';
     UserModule,
     QuestionModule,
     SubmissionModule,
+    GeminiModule,
   ],
   controllers: [UserController, CourseController, TestController, QuestionController],
   providers: [],
