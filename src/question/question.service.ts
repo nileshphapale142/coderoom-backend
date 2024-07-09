@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,98 +11,113 @@ import {
   PrismaClientUnknownRequestError,
 } from '@prisma/client/runtime/library';
 import { GeminiService } from '../gemini/gemini.service';
-import { copyFileSync } from 'fs';
+import { UserProvider } from 'src/user/user.service';
 
 @Injectable()
 export class QuestionProvider {
   constructor(
     private prismaService: PrismaService,
-    private geminiService: GeminiService,
+    // private userProvider: UserProvider
+    // private geminiService: GeminiService,
   ) {}
 
-  private generateCodePrompt(lang: string, dto: NewQuestionDTO) {
-    const prompt = `
-        only generate code, nothing else than that not even explaination and heading
+  //   private generateCodePrompt(lang: string, dto: NewQuestionDTO) {
+  //     const prompt = `
+  //         only generate code, nothing else than that not even explaination and heading
 
-code:
-#include <bits/stdc++.h>
+  // code:
+  // #include <bits/stdc++.h>
 
-<define_solution_function_with_arguments_${dto.inputs.reduce(
-      (prev, input) => {
-        prev += `${input.name} and `;
-        return prev;
-      },
-      '',
-    )} and_return_type_${dto.output.type}>
+  // <define_solution_function_with_arguments_${dto.inputs.reduce(
+  //       (prev, input) => {
+  //         prev += `${input.name} and `;
+  //         return prev;
+  //       },
+  //       '',
+  //     )} and_return_type_${dto.output.type}>
 
-bool ExecuteTestCaes()
-{
-${dto.inputs.reduce((prev, input) => {
-  prev += `<declare and take_${input.type}_input_named_${input.name}>\n`;
-  return prev;
-}, '')}
+  // bool ExecuteTestCaes()
+  // {
+  // ${dto.inputs.reduce((prev, input) => {
+  //   prev += `<declare and take_${input.type}_input_named_${input.name}>\n`;
+  //   return prev;
+  // }, '')}
 
-<declare and take_${dto.output.type}_input_named_expectedOutput>
+  // <declare and take_${dto.output.type}_input_named_expectedOutput>
 
-<call_solution_function_with_arguments_${dto.inputs.reduce(
-      (prev, input) => {
-        prev += `${input.name} and `;
-        return prev;
-      },
-      '',
-    )}>
+  // <call_solution_function_with_arguments_${dto.inputs.reduce(
+  //       (prev, input) => {
+  //         prev += `${input.name} and `;
+  //         return prev;
+  //       },
+  //       '',
+  //     )}>
 
-    <Compare expected output and function output>
-    <if output is nd-array compare individual elements>
-    <if output is string compare individual characters>
-    <else compare directly>
+  //     <Compare expected output and function output>
+  //     <if output is nd-array compare individual elements>
+  //     <if output is string compare individual characters>
+  //     <else compare directly>
 
-}
+  // }
 
-int main()
-{
+  // int main()
+  // {
 
-int numTestCases;
-cin >> numTestCases;
+  // int numTestCases;
+  // cin >> numTestCases;
 
-while (numTestCases--)
-{
-bool testResult = ExecuteTestCaes();
-if (!testResult) break;
-}
+  // while (numTestCases--)
+  // {
+  // bool testResult = ExecuteTestCaes();
+  // if (!testResult) break;
+  // }
 
-return 0;
-}
+  // return 0;
+  // }
 
+  // transform above code in equivalent ${lang} code
+  // perform required instructions mentioned in angle brackets
+  // don't write print statements
+  //       `;
 
-transform above code in equivalent ${lang} code
-perform required instructions mentioned in angle brackets
-don't write print statements
-      `;
+  //     return prompt;
+  //   }
 
-    return prompt;
-  }
+  //   private async getCodes(languages: string[], dto: NewQuestionDTO) {
+  //     const codePromises = languages.map(async (lang) => {
+  //       const prompt = this.generateCodePrompt(
+  //         lang.toLocaleLowerCase(),
+  //         dto,
+  //       );
+  //       const { text } = await this.geminiService.generateText(prompt);
+  //       let code = text.substring(text.indexOf('\n') + 1);
+  //       code = code.substring(0, code.lastIndexOf('\n'));
 
-  private async getCodes(languages: string[], dto: NewQuestionDTO) {
-    const codePromises = languages.map(async (lang) => {
-      const prompt = this.generateCodePrompt(
-        lang.toLocaleLowerCase(),
-        dto,
-      );
-      const { text } = await this.geminiService.generateText(prompt);
-      let code = text.substring(text.indexOf('\n') + 1);
-      code = code.substring(0, code.lastIndexOf('\n'));
+  //       return { language: lang, code };
+  //     });
 
-      return { language: lang, code };
-    });
+  //     const codes = await Promise.all(codePromises);
 
-    const codes = await Promise.all(codePromises);
-
-    return codes;
-  }
+  //     return codes;
+  //   }
 
   async createQuestion(dto: NewQuestionDTO) {
     try {
+      const test = await this.prismaService.test.findUnique({
+        where: { id: dto.testId },
+        select: {
+          allowedLanguages: true,
+          course: {
+            select: {
+              teacherId: true,
+            },
+          },
+        },
+      });
+
+      if (dto.teacherId !== test.course.teacherId)
+        throw new ForbiddenException('Unauthorized to add question');
+
       let question = await this.prismaService.question.create({
         data: {
           name: dto.name,
@@ -119,54 +135,68 @@ don't write print statements
         },
       });
 
-      const inputs = await this.prismaService.iO.createMany({
-        data: dto.inputs.map((input) => {
-          return {
-            inputQuestionId: question.id,
-            type: input.type,
-            name: input.name,
-          };
-        }),
-      });
-
-      const output = await this.prismaService.iO.create({
-        data: {
-          outputQuestionId: question.id,
-          type: dto.output.type,
-          name: dto.output.name,
-        },
-      });
-
-      const test = await this.prismaService.test.findUnique({
-        where: { id: dto.testId },
-        select: {
-          allowedLanguages: true,
-        },
-      });
-
-      //todo: add test cases
-
-      const codes = await this.getCodes(test.allowedLanguages, dto);
-
-      const executionCodes = await this.prismaService.code.createMany(
-        {
-          data: codes.map((code) => {
+      const etcs =
+        await this.prismaService.exampleTestCase.createMany({
+          data: dto.exampleTestCases.map((testCase) => {
             return {
-              execQueId: question.id,
-              code: code.code,
-              language: code.language,
+              questionId: question.id,
+              input: testCase.input,
+              output: testCase.ouput,
+              explaination: testCase.explaination,
             };
           }),
+        });
+
+      //todo: generate output of testcases by running the solution code using judge0
+      const testCases = await this.prismaService.testCase.create({
+        data: {
+          questionId: question.id,
+          input: dto.testCases,
+          output: 'output generated by running the code',
         },
-      );
+      });
+
+      // const inputs = await this.prismaService.iO.createMany({
+      //   data: dto.inputs.map((input) => {
+      //     return {
+      //       inputQuestionId: question.id,
+      //       type: input.type,
+      //       name: input.name,
+      //     };
+      //   }),
+      // });
+      //
+      // const output = await this.prismaService.iO.create({
+      //   data: {
+      //     outputQuestionId: question.id,
+      //     type: dto.output.type,
+      //     name: dto.output.name,
+      //   },
+      // });
+
+      // const codes = await this.getCodes(test.allowedLanguages, dto);
+
+      // const executionCodes = await this.prismaService.code.createMany(
+      //   {
+      //     data: codes.map((code) => {
+      //       return {
+      //         execQueId: question.id,
+      //         code: code.code,
+      //         language: code.language,
+      //       };
+      //     }),
+      //   },
+      // );
 
       question = await this.prismaService.question.findUnique({
         where: { id: question.id },
         include: {
           solution: true,
-          inputs: true,
-          outputs: true,
-          executionCode: true,
+          testCases: true,
+          exampleTestCases: true,
+          // inputs: true,
+          // outputs: true,
+          // executionCode: true,
         },
       });
 
@@ -181,17 +211,66 @@ don't write print statements
 
   async getQuestion(dto: GetQuestionDTO) {
     try {
-      const question = await this.prismaService.question.findUnique({
+      const test = await this.prismaService.question.findUnique({
         where: { id: dto.id },
+        select: {
+          Test: {
+            select: {
+              course: {
+                select: {
+                  teacherId: true,
+                  enrolledStudents: true,
+                },
+              },
+            },
+          },
+        },
       });
+
+      if (!test)
+        throw new NotFoundException('Question does not exist');
+
+      let question = null;
+
+      if (dto.userId === test.Test.course.teacherId) {
+        question = await this.prismaService.question.findUnique({
+          where: { id: dto.id },
+          include: {
+            solution: true,
+            testCases: true,
+            exampleTestCases: true,
+          },
+        });
+      } else if (
+        test.Test.course.enrolledStudents.some(
+          ({ userId }) => userId === dto.userId,
+        )
+      ) {
+        question = await this.prismaService.question.findUnique({
+          where: { id: dto.id },
+          include: {
+            exampleTestCases: true,
+          },
+        });
+
+        if (!question)
+          throw new NotFoundException('Question not found');
+
+        return { question };
+      } else {
+        throw new ForbiddenException(
+          'Not allowed to access question',
+        );
+      }
 
       if (!question)
         throw new NotFoundException('Question not found');
 
-      return question;
+      return { question };
     } catch (err) {
       if (err instanceof PrismaClientUnknownRequestError)
-        throw new NotFoundException('Question not found');
+        throw new ForbiddenException('Question not found');
+      throw err;
     }
   }
 

@@ -1,14 +1,35 @@
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
-class IO {
-  @IsString()
-  @IsNotEmpty()
-  type: string;
+// class IO {
+//   @IsString()
+//   @IsNotEmpty()
+//   type: string;
 
-  @IsString()
+//   @IsString()
+//   @IsNotEmpty()
+//   name: string;
+// }
+
+class ExampleTestCase {
   @IsNotEmpty()
-  name: string;
+  @IsString()
+  input: string;
+
+  @IsNotEmpty()
+  @IsString()
+  ouput: string;
+
+  @IsNotEmpty()
+  @IsString()
+  explaination: string;
 }
 
 class Code {
@@ -41,21 +62,30 @@ export class NewQuestionDTO {
 
   @ValidateNested()
   @Type(() => Code)
-  solutionCode: Code
+  solutionCode: Code;
 
-  
-  @ValidateNested({each: true})
-  @Type(() =>IO)
-  inputs: IO[]
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExampleTestCase)
+  exampleTestCases: ExampleTestCase[];
 
-  @ValidateNested()
-  @Type(() => IO)  
-  output: IO
+  // @ValidateNested({each: true})
+  // @Type(() =>IO)
+  // inputs: IO[]
+
+  // @ValidateNested()
+  // @Type(() => IO)
+  // output: IO
 
   @IsInt()
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
   testId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  teacherId?: number;
 }
 
 export class GetQuestionDTO {
@@ -63,6 +93,16 @@ export class GetQuestionDTO {
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
   id: number;
+
+  // @IsInt()
+  // @IsNotEmpty()
+  // @Transform(({ value }) => parseInt(value))
+  // testId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  userId?: number;
 }
 
 export class AddStudentPointsDTO {
@@ -73,6 +113,6 @@ export class AddStudentPointsDTO {
 
   @IsInt()
   @IsNotEmpty()
-  @Transform(({value}) => parseInt(value))
+  @Transform(({ value }) => parseInt(value))
   points: number;
 }

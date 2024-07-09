@@ -22,12 +22,14 @@ export class QuestionController {
   constructor(private questionProvider: QuestionProvider) {}
 
   @Post('new')
-  createQuestion(@Body() dto: NewQuestionDTO) {
+  createQuestion(@GetUser() user: User, @Body() dto: NewQuestionDTO) {
+    dto.teacherId = user.id
     return this.questionProvider.createQuestion(dto);
   }
 
   @Get(':id')
-  getQuestion(@Param() dto: GetQuestionDTO) {
+  getQuestion(@GetUser() user: User, @Param() dto: GetQuestionDTO) {
+    dto.userId = user.id
     return this.questionProvider.getQuestion(dto);
   }
 
