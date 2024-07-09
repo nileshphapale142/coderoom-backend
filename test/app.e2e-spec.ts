@@ -6,6 +6,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
 import { CreateTestDTO } from 'src/test/dto';
+import { GetQuestionDTO, NewQuestionDTO } from 'src/question/dto';
 
 describe('App e2e', () => {
   let app;
@@ -105,6 +106,39 @@ describe('App e2e', () => {
           .withBody(dto)
           .expectStatus(201)
           .stores('ursaMinAt', 'access_token');
+      });
+
+
+      it('create teacher virgo', () => {
+        const dto: SignUpDto = {
+          name: 'virgo',
+          email: 'virgo@gmail.com',
+          password: '123',
+          isTeacher: true,
+        };
+
+        return pactum
+          .spec()
+          .post(`/auth/signup`)
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('virgoAt', 'access_token');
+      });
+
+      it('create student corona', () => {
+        const dto: SignUpDto = {
+          name: 'corono',
+          email: 'corono@gmail.com',
+          password: '123',
+          isTeacher: true,
+        };
+
+        return pactum
+          .spec()
+          .post(`/auth/signup`)
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('coronoAt', 'access_token');
       });
     });
 
@@ -369,7 +403,7 @@ describe('App e2e', () => {
       });
 
       it('course does not exist', () => {
-        const dto:CreateTestDTO = {
+        const dto: CreateTestDTO = {
           name: 'Test 1',
           languages: ['Cpp', 'C'],
           evaluationScheme: 'static',
@@ -406,7 +440,7 @@ describe('App e2e', () => {
           .withBody(dto)
           .withBearerToken('$S{adamAt}')
           .expectStatus(201)
-          .stores("test1Id", "test.id")
+          .stores('test1Id', 'test.id');
       });
     });
 
@@ -416,7 +450,7 @@ describe('App e2e', () => {
           .spec()
           .get('/test/-1')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(404)
+          .expectStatus(404);
       });
 
       it('get test info', () => {
@@ -424,9 +458,8 @@ describe('App e2e', () => {
           .spec()
           .get('/test/$S{test1Id}')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(200)
+          .expectStatus(200);
       });
-
     });
 
     describe('Get leaderboard', () => {
@@ -435,7 +468,7 @@ describe('App e2e', () => {
           .spec()
           .get('/test/$S{test1Id}/leaderboard')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(200)
+          .expectStatus(200);
       });
     });
 
@@ -445,13 +478,227 @@ describe('App e2e', () => {
           .spec()
           .get('/test/$S{test1Id}/submissions')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(200)
-          .inspect();
+          .expectStatus(200);
       });
     });
-    
+
     describe('Edit test', () => {
       it.todo('edit test info');
+    });
+  });
+
+  describe('Question', () => {
+    describe('Create', () => {
+      it('Unauthorized: someone who does not created test', () => {
+        const dto: NewQuestionDTO = {
+          name: 'Smallest number',
+          description: `
+          Given an array of integers find out the smallest element in it.
+
+          Inputs:
+          First of line of testcaes is t: number of testCases, 
+          next line contains n: size of array,
+          next line contains nums array: n space separated integers.
+
+          Ouput: 
+          Print minimum element for each test case in a new line.
+
+          Constraints:
+          1 <= t <= 100
+          1 <= n <= 100
+          -100 <= nums[i] <= 100
+          `,
+          points: 100,
+          testCases: `
+          2
+          4
+          1 2 3 4
+          5
+          5 4 3 2 1
+          `,
+          exampleTestCases: [
+            {
+              input: `
+              1
+              1
+              `,
+              ouput: '1',
+              explaination: '1 is the minimum element',
+            },
+            {
+              input: `
+              3
+              4 2 5`,
+              ouput: '2',
+              explaination: '2 is the smallest element',
+            },
+          ],
+          testId: 1,
+          // inputs: [
+          //   { type: 'string', name: 'nums' },
+          //   { type: 'int', name: 'n' },
+          // ],
+          // output: { type: 'string', name: 'nameNotNecessary' },
+          solutionCode: {
+            language: 'cpp',
+            code: `#include <bits/stdc++.h>
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+          },
+        };
+
+        return pactum
+          .spec()
+          .post('/question/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({ ...dto, testId: '$S{test1Id}' })
+          .expectStatus(403);
+      });
+
+      it('Create a question', () => {
+        const dto: NewQuestionDTO = {
+          name: 'Smallest number',
+          description: `
+          Given an array of integers find out the smallest element in it.
+
+          Inputs:
+          First of line of testcaes is t: number of testCases, 
+          next line contains n: size of array,
+          next line contains nums array: n space separated integers.
+
+          Ouput: 
+          Print minimum element for each test case in a new line.
+
+          Constraints:
+          1 <= t <= 100
+          1 <= n <= 100
+          -100 <= nums[i] <= 100
+          `,
+          points: 100,
+          testCases: `
+          2
+          4
+          1 2 3 4
+          5
+          5 4 3 2 1
+          `,
+          exampleTestCases: [
+            {
+              input: `
+              1
+              1
+              `,
+              ouput: '1',
+              explaination: '1 is the minimum element',
+            },
+            {
+              input: `
+              3
+              4 2 5`,
+              ouput: '2',
+              explaination: '2 is the smallest element',
+            },
+          ],
+          testId: 1,
+          // inputs: [
+          //   { type: 'string', name: 'nums' },
+          //   { type: 'int', name: 'n' },
+          // ],
+          // output: { type: 'string', name: 'nameNotNecessary' },
+          solutionCode: {
+            language: 'cpp',
+            code: `#include <bits/stdc++.h>
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+          },
+        };
+
+        return pactum
+          .spec()
+          .post('/question/new')
+          .withBearerToken('$S{adamAt}')
+          .withBody({ ...dto, testId: '$S{test1Id}' })
+          .expectStatus(201)
+          .stores('que1Id', 'question.id');
+        // .inspect()
+        // .withRequestTimeout(20000);
+      });
+    });
+
+    describe('Get', () => {
+
+      it('Unauthorized: teacher', () => {
+        return pactum
+          .spec()
+          .get('/question/$S{que1Id}')
+          .withBearerToken('$S{virgoAt}')
+          .expectStatus(403)
+          .inspect();
+      });
+
+      it('Unauthorized: student', () => {
+        return pactum
+          .spec()
+          .get('/question/$S{que1Id}')
+          .withBearerToken('$S{coronoAt}')
+          .expectStatus(403)
+          // .inspect();
+      });
+
+
+      it('Get question: teacher', () => {
+        return pactum
+          .spec()
+          .get('/question/$S{que1Id}')
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+          // .inspect();
+      });
+
+      it('Get question: student', () => {
+        return pactum
+          .spec()
+          .get('/question/$S{que1Id}')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+          // .inspect();
+      });
+    });
+
+    describe('Edit', () => {
+      it.todo('Edit question');
     });
   });
 });
