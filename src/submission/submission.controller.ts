@@ -18,7 +18,6 @@ export class SubmissionController {
             ...dto
         }
 
-
         return this.submissionProvider.newSubmission(dto)
     }
 

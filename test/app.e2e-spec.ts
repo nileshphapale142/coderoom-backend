@@ -7,6 +7,7 @@ import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
 import { CreateTestDTO } from 'src/test/dto';
 import { GetQuestionDTO, NewQuestionDTO } from 'src/question/dto';
+import { NewSubmisionDTO } from 'src/submission/dto';
 
 describe('App e2e', () => {
   let app;
@@ -107,7 +108,6 @@ describe('App e2e', () => {
           .expectStatus(201)
           .stores('ursaMinAt', 'access_token');
       });
-
 
       it('create teacher virgo', () => {
         const dto: SignUpDto = {
@@ -658,14 +658,13 @@ int main() {
     });
 
     describe('Get', () => {
-
       it('Unauthorized: teacher', () => {
         return pactum
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{virgoAt}')
           .expectStatus(403)
-          .inspect();
+          // .inspect();
       });
 
       it('Unauthorized: student', () => {
@@ -673,18 +672,17 @@ int main() {
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{coronoAt}')
-          .expectStatus(403)
-          // .inspect();
+          .expectStatus(403);
+        // .inspect();
       });
-
 
       it('Get question: teacher', () => {
         return pactum
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{adamAt}')
-          .expectStatus(200)
-          // .inspect();
+          .expectStatus(200);
+        // .inspect();
       });
 
       it('Get question: student', () => {
@@ -692,13 +690,39 @@ int main() {
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{ursaMajAt}')
-          .expectStatus(200)
-          // .inspect();
+          .expectStatus(200);
+        // .inspect();
       });
     });
 
     describe('Edit', () => {
       it.todo('Edit question');
+    });
+  });
+
+  describe('Submission', () => {
+    describe('Create submission', () => {
+      it('should create a submission', () => {
+        const dto: NewSubmisionDTO = {
+          code: 'print(\'hello world\')',
+          language: 'python',
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que1Id}',
+          })
+          .expectStatus(201);
+      });
+    });
+
+    describe('Get submission', () => {
+      it.todo('should get a submission');
     });
   });
 });
