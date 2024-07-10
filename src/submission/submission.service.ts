@@ -2,10 +2,14 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NewSubmisionDTO } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Judge0Service } from '../judge0/judge0.service';
+import { copyFileSync } from 'fs';
 
 @Injectable()
 export class SubmissionProvider {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: PrismaService, 
+    private readonly judge0Service: Judge0Service
+  ) {}
 
   async newSubmission(dto: NewSubmisionDTO) {
     try {
@@ -32,6 +36,8 @@ export class SubmissionProvider {
             submissionId: submission.id,
           },
         });
+
+      console.log(await this.judge0Service.about())
 
       return {submission};
 
