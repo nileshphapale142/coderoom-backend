@@ -26,7 +26,7 @@ export class Judge0Service {
           )
           .pipe(map((res) => res.data)),
       );
-      
+
       return data;
     } catch (err) {
       throw err;
@@ -36,21 +36,21 @@ export class Judge0Service {
   async getSubmission(dto: GetSubmissionDTO) {
     try {
       const data = await lastValueFrom(
-        this.httpService
-          .get(`https://${env.JUDGE0.HOST}/submissions/${dto.token}`, {
+        this.httpService.get(
+          `https://${env.JUDGE0.HOST}/submissions/${dto.token}`,
+          {
             headers: {
               'x-rapidapi-key': env.JUDGE0.KEY,
               'x-rapidapi-host': env.JUDGE0.HOST,
             },
-          })
+          },
+        ),
       );
       return data;
     } catch (err) {
       throw err;
     }
-  } 
-
-
+  }
 
   async about() {
     try {

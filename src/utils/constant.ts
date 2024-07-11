@@ -118,3 +118,13 @@ export const statuse = [
     description: 'Exec Format Error',
   },
 ];
+
+export const statusCode = {
+  1: 'Accepted',
+  2: 'Wrong Answer',
+  3: 'Time Limit Exceeded',
+  4: 'Compilation Error',
+  5: 'Runtime Error',
+  6: 'Exec Format Error',
+  7: 'Unknown',
+};

@@ -23,86 +23,6 @@ export class QuestionProvider {
     private readonly judge0Service: Judge0Service,
   ) {}
 
-  //   private generateCodePrompt(lang: string, dto: NewQuestionDTO) {
-  //     const prompt = `
-  //         only generate code, nothing else than that not even explaination and heading
-
-  // code:
-  // #include <bits/stdc++.h>
-
-  // <define_solution_function_with_arguments_${dto.inputs.reduce(
-  //       (prev, input) => {
-  //         prev += `${input.name} and `;
-  //         return prev;
-  //       },
-  //       '',
-  //     )} and_return_type_${dto.output.type}>
-
-  // bool ExecuteTestCaes()
-  // {
-  // ${dto.inputs.reduce((prev, input) => {
-  //   prev += `<declare and take_${input.type}_input_named_${input.name}>\n`;
-  //   return prev;
-  // }, '')}
-
-  // <declare and take_${dto.output.type}_input_named_expectedOutput>
-
-  // <call_solution_function_with_arguments_${dto.inputs.reduce(
-  //       (prev, input) => {
-  //         prev += `${input.name} and `;
-  //         return prev;
-  //       },
-  //       '',
-  //     )}>
-
-  //     <Compare expected output and function output>
-  //     <if output is nd-array compare individual elements>
-  //     <if output is string compare individual characters>
-  //     <else compare directly>
-
-  // }
-
-  // int main()
-  // {
-
-  // int numTestCases;
-  // cin >> numTestCases;
-
-  // while (numTestCases--)
-  // {
-  // bool testResult = ExecuteTestCaes();
-  // if (!testResult) break;
-  // }
-
-  // return 0;
-  // }
-
-  // transform above code in equivalent ${lang} code
-  // perform required instructions mentioned in angle brackets
-  // don't write print statements
-  //       `;
-
-  //     return prompt;
-  //   }
-
-  //   private async getCodes(languages: string[], dto: NewQuestionDTO) {
-  //     const codePromises = languages.map(async (lang) => {
-  //       const prompt = this.generateCodePrompt(
-  //         lang.toLocaleLowerCase(),
-  //         dto,
-  //       );
-  //       const { text } = await this.geminiService.generateText(prompt);
-  //       let code = text.substring(text.indexOf('\n') + 1);
-  //       code = code.substring(0, code.lastIndexOf('\n'));
-
-  //       return { language: lang, code };
-  //     });
-
-  //     const codes = await Promise.all(codePromises);
-
-  //     return codes;
-  //   }
-
   private async processSubmission(dto: CreateSubmissionDTO) {
     try {
       const result: SubmisionResult =
@@ -114,11 +34,11 @@ export class QuestionProvider {
         );
       } else if (result.status.id === 6) {
         throw new BadRequestException(
-          'Compilation Error: ' + toString(result.compile_output),
+          'Compilation Error: ' + result.compile_output,
         );
-      } else if (result.status.id in [7, 8, 9, 10, 11, 12]) {
+      } else if ([7, 8, 9, 10, 11, 12].includes(result.status.id)) {
         throw new BadRequestException(
-          'Runtime error: ' + toString(result.stderr),
+          'Runtime error: ' + result.stderr,
         );
       } else if (result.status.id === 14) {
         throw new BadRequestException(
@@ -184,47 +104,18 @@ export class QuestionProvider {
         stdin: dto.testCases,
       };
 
-      const result = await this.processSubmission(submissionDTO)
+      //todo: handle judge0 rate limit
+
+      const result =
+        await this.processSubmission(submissionDTO);
 
       const testCases = await this.prismaService.testCase.create({
-        data: {
+        data: { 
           questionId: question.id,
           input: dto.testCases,
-          output: toString(result.stdout),
+          output: result.stdout ? result.stdout : '',
         },
       });
-
-      // const inputs = await this.prismaService.iO.createMany({
-      //   data: dto.inputs.map((input) => {
-      //     return {
-      //       inputQuestionId: question.id,
-      //       type: input.type,
-      //       name: input.name,
-      //     };
-      //   }),
-      // });
-      //
-      // const output = await this.prismaService.iO.create({
-      //   data: {
-      //     outputQuestionId: question.id,
-      //     type: dto.output.type,
-      //     name: dto.output.name,
-      //   },
-      // });
-
-      // const codes = await this.getCodes(test.allowedLanguages, dto);
-
-      // const executionCodes = await this.prismaService.code.createMany(
-      //   {
-      //     data: codes.map((code) => {
-      //       return {
-      //         execQueId: question.id,
-      //         code: code.code,
-      //         language: code.language,
-      //       };
-      //     }),
-      //   },
-      // );
 
       question = await this.prismaService.question.findUnique({
         where: { id: question.id },

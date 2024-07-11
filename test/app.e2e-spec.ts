@@ -6,9 +6,8 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
 import { CreateTestDTO } from 'src/test/dto';
-import { GetQuestionDTO, NewQuestionDTO } from 'src/question/dto';
+import { NewQuestionDTO } from 'src/question/dto';
 import { NewSubmisionDTO } from 'src/submission/dto';
-import { toBase64 } from '../src/utils';
 
 describe('App e2e', () => {
   let app;
@@ -443,6 +442,30 @@ describe('App e2e', () => {
           .expectStatus(201)
           .stores('test1Id', 'test.id');
       });
+
+      it('create test with current timings', () => {
+        const currTime = new Date()
+          .toLocaleString()
+          .replace(/\//g, '-');
+        const dto = {
+          name: 'Test 2',
+          languages: ['Cpp', 'C'],
+          evaluationScheme: 'static',
+          visibility: 'private',
+          courseId: '$S{course1Id}',
+          date: '2024-07-11',
+          startTime: '13:00',
+          endTime: '23:00',
+        };
+
+        return pactum
+          .spec()
+          .post('/test/new')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(201)
+          .stores('test2Id', 'test.id');
+      });
     });
 
     describe('Get test', () => {
@@ -537,7 +560,7 @@ describe('App e2e', () => {
         solutionCode: {
           language: 'cpp',
           code: btoa(
-`#include <bits/stdc++.h>
+            `#include <bits/stdc++.h>
 using namespace std;           
 
 int main() {
@@ -556,7 +579,8 @@ int main() {
   }
 
   return 0;
-}`),
+}`,
+          ),
         },
       };
 
@@ -577,7 +601,18 @@ int main() {
           .withBody({ ...dto, testId: '$S{test1Id}' })
           .expectStatus(201)
           .stores('que1Id', 'question.id')
-          .withRequestTimeout(100000)
+          .withRequestTimeout(100000);
+      });
+
+      it('Create a question in test 2', () => {
+        return pactum
+          .spec()
+          .post('/question/new')
+          .withBearerToken('$S{adamAt}')
+          .withBody({ ...dto, testId: '$S{test2Id}' })
+          .expectStatus(201)
+          .stores('que2Id', 'question.id')
+          .withRequestTimeout(100000);
       });
     });
 
@@ -626,10 +661,33 @@ int main() {
 
   describe('Submission', () => {
     describe('Create submission', () => {
-      it('should create a submission', () => {
+      it('should not accepet the submission: late ', () => {
         const dto: NewSubmisionDTO = {
-          code: "print('hello world')",
-          language: 'python',
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
           questionId: 1,
         };
 
@@ -641,7 +699,50 @@ int main() {
             ...dto,
             questionId: '$S{que1Id}',
           })
-          .expectStatus(201);
+          .expectStatus(403)
+          .withRequestTimeout(5000);
+      });
+
+      it('should create a submission', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000);
       });
     });
 

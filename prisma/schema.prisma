@@ -152,7 +152,7 @@ model Submission {
   code     String
   language String
   time     DateTime
-  status   String
+  statusCode   Int 
 
   StudentSubmission StudentSubmission[]
 }
