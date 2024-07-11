@@ -8,6 +8,7 @@ import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
 import { CreateTestDTO } from 'src/test/dto';
 import { GetQuestionDTO, NewQuestionDTO } from 'src/question/dto';
 import { NewSubmisionDTO } from 'src/submission/dto';
+import { toBase64 } from '../src/utils';
 
 describe('App e2e', () => {
   let app;
@@ -489,10 +490,9 @@ describe('App e2e', () => {
 
   describe('Question', () => {
     describe('Create', () => {
-      it('Unauthorized: someone who does not created test', () => {
-        const dto: NewQuestionDTO = {
-          name: 'Smallest number',
-          description: `
+      const dto: NewQuestionDTO = {
+        name: 'Smallest number',
+        description: `
           Given an array of integers find out the smallest element in it.
 
           Inputs:
@@ -508,40 +508,37 @@ describe('App e2e', () => {
           1 <= n <= 100
           -100 <= nums[i] <= 100
           `,
-          points: 100,
-          testCases: `
+        points: 100,
+        testCases: btoa(`
           2
           4
           1 2 3 4
           5
           5 4 3 2 1
-          `,
-          exampleTestCases: [
-            {
-              input: `
+          `),
+        exampleTestCases: [
+          {
+            input: `
               1
               1
               `,
-              ouput: '1',
-              explaination: '1 is the minimum element',
-            },
-            {
-              input: `
+            ouput: '1',
+            explaination: '1 is the minimum element',
+          },
+          {
+            input: `
               3
               4 2 5`,
-              ouput: '2',
-              explaination: '2 is the smallest element',
-            },
-          ],
-          testId: 1,
-          // inputs: [
-          //   { type: 'string', name: 'nums' },
-          //   { type: 'int', name: 'n' },
-          // ],
-          // output: { type: 'string', name: 'nameNotNecessary' },
-          solutionCode: {
-            language: 'cpp',
-            code: `#include <bits/stdc++.h>
+            ouput: '2',
+            explaination: '2 is the smallest element',
+          },
+        ],
+        testId: 1,
+        solutionCode: {
+          language: 'cpp',
+          code: btoa(
+`#include <bits/stdc++.h>
+using namespace std;           
 
 int main() {
   int t;
@@ -559,10 +556,11 @@ int main() {
   }
 
   return 0;
-}`,
-          },
-        };
+}`),
+        },
+      };
 
+      it('Unauthorized: someone who does not created test', () => {
         return pactum
           .spec()
           .post('/question/new')
@@ -572,88 +570,14 @@ int main() {
       });
 
       it('Create a question', () => {
-        const dto: NewQuestionDTO = {
-          name: 'Smallest number',
-          description: `
-          Given an array of integers find out the smallest element in it.
-
-          Inputs:
-          First of line of testcaes is t: number of testCases, 
-          next line contains n: size of array,
-          next line contains nums array: n space separated integers.
-
-          Ouput: 
-          Print minimum element for each test case in a new line.
-
-          Constraints:
-          1 <= t <= 100
-          1 <= n <= 100
-          -100 <= nums[i] <= 100
-          `,
-          points: 100,
-          testCases: `
-          2
-          4
-          1 2 3 4
-          5
-          5 4 3 2 1
-          `,
-          exampleTestCases: [
-            {
-              input: `
-              1
-              1
-              `,
-              ouput: '1',
-              explaination: '1 is the minimum element',
-            },
-            {
-              input: `
-              3
-              4 2 5`,
-              ouput: '2',
-              explaination: '2 is the smallest element',
-            },
-          ],
-          testId: 1,
-          // inputs: [
-          //   { type: 'string', name: 'nums' },
-          //   { type: 'int', name: 'n' },
-          // ],
-          // output: { type: 'string', name: 'nameNotNecessary' },
-          solutionCode: {
-            language: 'cpp',
-            code: `#include <bits/stdc++.h>
-
-int main() {
-  int t;
-  cin >> t;
-  while (t--) {
-    int n;
-    cin >> n;
-    vector<int> nums;
-    for (int i = 0; i < n; i ++) {
-      int temp;
-      cin >> temp;
-      nums.push_back(temp);
-    }
-    cout << *min_element(nums.begin(), nums.end()) << endl;
-  }
-
-  return 0;
-}`,
-          },
-        };
-
         return pactum
           .spec()
           .post('/question/new')
           .withBearerToken('$S{adamAt}')
           .withBody({ ...dto, testId: '$S{test1Id}' })
           .expectStatus(201)
-          .stores('que1Id', 'question.id');
-        // .inspect()
-        // .withRequestTimeout(20000);
+          .stores('que1Id', 'question.id')
+          .withRequestTimeout(100000)
       });
     });
 
@@ -663,8 +587,8 @@ int main() {
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{virgoAt}')
-          .expectStatus(403)
-          // .inspect();
+          .expectStatus(403);
+        // .inspect();
       });
 
       it('Unauthorized: student', () => {
@@ -704,7 +628,7 @@ int main() {
     describe('Create submission', () => {
       it('should create a submission', () => {
         const dto: NewSubmisionDTO = {
-          code: 'print(\'hello world\')',
+          code: "print('hello world')",
           language: 'python',
           questionId: 1,
         };

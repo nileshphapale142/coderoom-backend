@@ -37,8 +37,6 @@ export class SubmissionProvider {
           },
         });
 
-      console.log(await this.judge0Service.about())
-
       return {submission};
 
     } catch (err) {
