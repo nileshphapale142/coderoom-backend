@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
+  GatewayTimeoutException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,96 +12,77 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
 } from '@prisma/client/runtime/library';
-import { GeminiService } from '../gemini/gemini.service';
-import { UserProvider } from 'src/user/user.service';
+import { Judge0Service } from '../judge0/judge0.service';
+import { CreateSubmissionDTO } from '../judge0/dto';
+import { languageSupport, SubmisionResult, toString } from '../utils';
 
 @Injectable()
 export class QuestionProvider {
   constructor(
     private prismaService: PrismaService,
-    // private userProvider: UserProvider
-    // private geminiService: GeminiService,
+    private readonly judge0Service: Judge0Service,
   ) {}
 
-  //   private generateCodePrompt(lang: string, dto: NewQuestionDTO) {
-  //     const prompt = `
-  //         only generate code, nothing else than that not even explaination and heading
+  private async processSubmission(dto: CreateSubmissionDTO) {
+    try {
+      const result: SubmisionResult =
+        await this.judge0Service.createSubmission(dto);
 
-  // code:
-  // #include <bits/stdc++.h>
+      if (result.status.id === 5) {
+        throw new GatewayTimeoutException(
+          'Time limit exceeded for the test cases',
+        );
+      } else if (result.status.id === 6) {
+        throw new BadRequestException(
+          'Compilation Error: ' + result.compile_output,
+        );
+      } else if ([7, 8, 9, 10, 11, 12].includes(result.status.id)) {
+        throw new BadRequestException(
+          'Runtime error: ' + result.stderr,
+        );
+      } else if (result.status.id === 14) {
+        throw new BadRequestException(
+          'Code execution failed: Exec format error. Please check your code and try again.',
+        );
+      }
 
-  // <define_solution_function_with_arguments_${dto.inputs.reduce(
-  //       (prev, input) => {
-  //         prev += `${input.name} and `;
-  //         return prev;
-  //       },
-  //       '',
-  //     )} and_return_type_${dto.output.type}>
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  }
 
-  // bool ExecuteTestCaes()
-  // {
-  // ${dto.inputs.reduce((prev, input) => {
-  //   prev += `<declare and take_${input.type}_input_named_${input.name}>\n`;
-  //   return prev;
-  // }, '')}
+  private async processSubmissionBatch(dto: CreateSubmissionDTO) {
+    type batchResult = {
+      token: string;
+    }
+    try {
+      const result =
+        await this.judge0Service.createSubmissionBactch([dto]);
 
-  // <declare and take_${dto.output.type}_input_named_expectedOutput>
+      // if (result.status.id === 5) {
+      //   throw new GatewayTimeoutException(
+      //     'Time limit exceeded for the test cases',
+      //   );
+      // } else if (result.status.id === 6) {
+      //   throw new BadRequestException(
+      //     'Compilation Error: ' + result.compile_output,
+      //   );
+      // } else if ([7, 8, 9, 10, 11, 12].includes(result.status.id)) {
+      //   throw new BadRequestException(
+      //     'Runtime error: ' + result.stderr,
+      //   );
+      // } else if (result.status.id === 14) {
+      //   throw new BadRequestException(
+      //     'Code execution failed: Exec format error. Please check your code and try again.',
+      //   );
+      // }
 
-  // <call_solution_function_with_arguments_${dto.inputs.reduce(
-  //       (prev, input) => {
-  //         prev += `${input.name} and `;
-  //         return prev;
-  //       },
-  //       '',
-  //     )}>
-
-  //     <Compare expected output and function output>
-  //     <if output is nd-array compare individual elements>
-  //     <if output is string compare individual characters>
-  //     <else compare directly>
-
-  // }
-
-  // int main()
-  // {
-
-  // int numTestCases;
-  // cin >> numTestCases;
-
-  // while (numTestCases--)
-  // {
-  // bool testResult = ExecuteTestCaes();
-  // if (!testResult) break;
-  // }
-
-  // return 0;
-  // }
-
-  // transform above code in equivalent ${lang} code
-  // perform required instructions mentioned in angle brackets
-  // don't write print statements
-  //       `;
-
-  //     return prompt;
-  //   }
-
-  //   private async getCodes(languages: string[], dto: NewQuestionDTO) {
-  //     const codePromises = languages.map(async (lang) => {
-  //       const prompt = this.generateCodePrompt(
-  //         lang.toLocaleLowerCase(),
-  //         dto,
-  //       );
-  //       const { text } = await this.geminiService.generateText(prompt);
-  //       let code = text.substring(text.indexOf('\n') + 1);
-  //       code = code.substring(0, code.lastIndexOf('\n'));
-
-  //       return { language: lang, code };
-  //     });
-
-  //     const codes = await Promise.all(codePromises);
-
-  //     return codes;
-  //   }
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  }
 
   async createQuestion(dto: NewQuestionDTO) {
     try {
@@ -147,46 +130,23 @@ export class QuestionProvider {
           }),
         });
 
-      //todo: generate output of testcases by running the solution code using judge0
+      const submissionDTO: CreateSubmissionDTO = {
+        language_id: languageSupport[dto.solutionCode.language],
+        source_code: dto.solutionCode.code,
+        stdin: dto.testCases,
+      };
+
+      //todo: handle judge0 rate limit
+
+      const result = await this.processSubmission(submissionDTO);
+
       const testCases = await this.prismaService.testCase.create({
         data: {
           questionId: question.id,
           input: dto.testCases,
-          output: 'output generated by running the code',
+          output: result.stdout ? result.stdout : '',
         },
       });
-
-      // const inputs = await this.prismaService.iO.createMany({
-      //   data: dto.inputs.map((input) => {
-      //     return {
-      //       inputQuestionId: question.id,
-      //       type: input.type,
-      //       name: input.name,
-      //     };
-      //   }),
-      // });
-      //
-      // const output = await this.prismaService.iO.create({
-      //   data: {
-      //     outputQuestionId: question.id,
-      //     type: dto.output.type,
-      //     name: dto.output.name,
-      //   },
-      // });
-
-      // const codes = await this.getCodes(test.allowedLanguages, dto);
-
-      // const executionCodes = await this.prismaService.code.createMany(
-      //   {
-      //     data: codes.map((code) => {
-      //       return {
-      //         execQueId: question.id,
-      //         code: code.code,
-      //         language: code.language,
-      //       };
-      //     }),
-      //   },
-      // );
 
       question = await this.prismaService.question.findUnique({
         where: { id: question.id },
@@ -194,9 +154,6 @@ export class QuestionProvider {
           solution: true,
           testCases: true,
           exampleTestCases: true,
-          // inputs: true,
-          // outputs: true,
-          // executionCode: true,
         },
       });
 

@@ -1,29 +1,51 @@
-import { Transform } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Transform, Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsBase64,
+  ValidateNested,
+  IsInt,
+} from 'class-validator';
 
-export class NewSubmisionDTO {
-    @IsString()
-    code: string;
+class Code {
+  @IsString()
+  @IsNotEmpty()
+  language: string;
 
-    @IsNotEmpty()
-    @IsString()
-    language: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Transform(({value}) => parseInt(value))
-    questionId: number;
-
-    @IsOptional()
-    @IsNumber()
-    @IsNotEmpty()
-    @Transform(({value}) => parseInt(value))
-    studentId?: number;
+  @IsNotEmpty()
+  @IsString()
+  @IsBase64()
+  code: string;
 }
 
-export class SubmissionIDDTO {
-    @IsNumber()
-    @IsNotEmpty()
-    @Transform(({value}) => parseInt(value))
-    id: number;
+export class NewSubmisionDTO {
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => Code)
+  code: Code;
+
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  questionId: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  studentId?: number;
+}
+
+export class GetSubmissionDTO {
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  queId: number;
+
+
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  userId?: number;
 }

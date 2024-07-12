@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsEmail, IsNotEmpty, IsString,  } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumberString, IsOptional, IsString,  } from "class-validator";
 
 export class SignUpDto {
 
@@ -18,6 +18,11 @@ export class SignUpDto {
     @IsBoolean()
     @Transform(({value}) => value === "true" || value === true)
     isTeacher: boolean;
+
+    @IsOptional()
+    @IsNotEmpty()
+    @IsNumberString()
+    enrollementId?: string;
 }
 
 

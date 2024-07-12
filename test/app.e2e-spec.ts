@@ -6,7 +6,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
 import { CreateTestDTO } from 'src/test/dto';
-import { GetQuestionDTO, NewQuestionDTO } from 'src/question/dto';
+import { NewQuestionDTO } from 'src/question/dto';
 import { NewSubmisionDTO } from 'src/submission/dto';
 
 describe('App e2e', () => {
@@ -82,6 +82,7 @@ describe('App e2e', () => {
           name: 'Ursa Major',
           email: 'ursa@gmail.com',
           password: '123',
+          enrollementId: '202111063',
           isTeacher: false,
         };
 
@@ -98,6 +99,7 @@ describe('App e2e', () => {
           name: 'Ursa minor',
           email: 'ursamin@gmail.com',
           password: '123',
+          enrollementId: '202111064',
           isTeacher: false,
         };
 
@@ -442,6 +444,30 @@ describe('App e2e', () => {
           .expectStatus(201)
           .stores('test1Id', 'test.id');
       });
+
+      it('create test with current timings', () => {
+        const currTime = new Date()
+          .toLocaleString()
+          .replace(/\//g, '-');
+        const dto = {
+          name: 'Test 2',
+          languages: ['Cpp', 'C'],
+          evaluationScheme: 'static',
+          visibility: 'private',
+          courseId: '$S{course1Id}',
+          date: '2024-07-12',
+          startTime: '13:00',
+          endTime: '23:00',
+        };
+
+        return pactum
+          .spec()
+          .post('/test/new')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(201)
+          .stores('test2Id', 'test.id');
+      });
     });
 
     describe('Get test', () => {
@@ -489,10 +515,9 @@ describe('App e2e', () => {
 
   describe('Question', () => {
     describe('Create', () => {
-      it('Unauthorized: someone who does not created test', () => {
-        const dto: NewQuestionDTO = {
-          name: 'Smallest number',
-          description: `
+      const dto: NewQuestionDTO = {
+        name: 'Smallest number',
+        description: `
           Given an array of integers find out the smallest element in it.
 
           Inputs:
@@ -508,40 +533,37 @@ describe('App e2e', () => {
           1 <= n <= 100
           -100 <= nums[i] <= 100
           `,
-          points: 100,
-          testCases: `
+        points: 100,
+        testCases: btoa(`
           2
           4
           1 2 3 4
           5
           5 4 3 2 1
-          `,
-          exampleTestCases: [
-            {
-              input: `
+          `),
+        exampleTestCases: [
+          {
+            input: `
               1
               1
               `,
-              ouput: '1',
-              explaination: '1 is the minimum element',
-            },
-            {
-              input: `
+            ouput: '1',
+            explaination: '1 is the minimum element',
+          },
+          {
+            input: `
               3
               4 2 5`,
-              ouput: '2',
-              explaination: '2 is the smallest element',
-            },
-          ],
-          testId: 1,
-          // inputs: [
-          //   { type: 'string', name: 'nums' },
-          //   { type: 'int', name: 'n' },
-          // ],
-          // output: { type: 'string', name: 'nameNotNecessary' },
-          solutionCode: {
-            language: 'cpp',
-            code: `#include <bits/stdc++.h>
+            ouput: '2',
+            explaination: '2 is the smallest element',
+          },
+        ],
+        testId: 1,
+        solutionCode: {
+          language: 'cpp',
+          code: btoa(
+            `#include <bits/stdc++.h>
+using namespace std;           
 
 int main() {
   int t;
@@ -560,9 +582,11 @@ int main() {
 
   return 0;
 }`,
-          },
-        };
+          ),
+        },
+      };
 
+      it('Unauthorized: someone who does not created test', () => {
         return pactum
           .spec()
           .post('/question/new')
@@ -572,88 +596,25 @@ int main() {
       });
 
       it('Create a question', () => {
-        const dto: NewQuestionDTO = {
-          name: 'Smallest number',
-          description: `
-          Given an array of integers find out the smallest element in it.
-
-          Inputs:
-          First of line of testcaes is t: number of testCases, 
-          next line contains n: size of array,
-          next line contains nums array: n space separated integers.
-
-          Ouput: 
-          Print minimum element for each test case in a new line.
-
-          Constraints:
-          1 <= t <= 100
-          1 <= n <= 100
-          -100 <= nums[i] <= 100
-          `,
-          points: 100,
-          testCases: `
-          2
-          4
-          1 2 3 4
-          5
-          5 4 3 2 1
-          `,
-          exampleTestCases: [
-            {
-              input: `
-              1
-              1
-              `,
-              ouput: '1',
-              explaination: '1 is the minimum element',
-            },
-            {
-              input: `
-              3
-              4 2 5`,
-              ouput: '2',
-              explaination: '2 is the smallest element',
-            },
-          ],
-          testId: 1,
-          // inputs: [
-          //   { type: 'string', name: 'nums' },
-          //   { type: 'int', name: 'n' },
-          // ],
-          // output: { type: 'string', name: 'nameNotNecessary' },
-          solutionCode: {
-            language: 'cpp',
-            code: `#include <bits/stdc++.h>
-
-int main() {
-  int t;
-  cin >> t;
-  while (t--) {
-    int n;
-    cin >> n;
-    vector<int> nums;
-    for (int i = 0; i < n; i ++) {
-      int temp;
-      cin >> temp;
-      nums.push_back(temp);
-    }
-    cout << *min_element(nums.begin(), nums.end()) << endl;
-  }
-
-  return 0;
-}`,
-          },
-        };
-
         return pactum
           .spec()
           .post('/question/new')
           .withBearerToken('$S{adamAt}')
           .withBody({ ...dto, testId: '$S{test1Id}' })
           .expectStatus(201)
-          .stores('que1Id', 'question.id');
-        // .inspect()
-        // .withRequestTimeout(20000);
+          .stores('que1Id', 'question.id')
+          .withRequestTimeout(100000);
+      });
+
+      it('Create a question in test 2', () => {
+        return pactum
+          .spec()
+          .post('/question/new')
+          .withBearerToken('$S{adamAt}')
+          .withBody({ ...dto, testId: '$S{test2Id}' })
+          .expectStatus(201)
+          .stores('que2Id', 'question.id')
+          .withRequestTimeout(100000);
       });
     });
 
@@ -663,8 +624,8 @@ int main() {
           .spec()
           .get('/question/$S{que1Id}')
           .withBearerToken('$S{virgoAt}')
-          .expectStatus(403)
-          // .inspect();
+          .expectStatus(403);
+        // .inspect();
       });
 
       it('Unauthorized: student', () => {
@@ -702,10 +663,33 @@ int main() {
 
   describe('Submission', () => {
     describe('Create submission', () => {
-      it('should create a submission', () => {
+      it('should not accepet the submission: late ', () => {
         const dto: NewSubmisionDTO = {
-          code: 'print(\'hello world\')',
-          language: 'python',
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
           questionId: 1,
         };
 
@@ -717,12 +701,161 @@ int main() {
             ...dto,
             questionId: '$S{que1Id}',
           })
-          .expectStatus(201);
+          .expectStatus(403)
+          .withRequestTimeout(5000);
+      });
+
+      it('submission: error', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+// using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000)
+      });
+
+      it('submission: wrong answer', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *max_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000)
+      });       
+
+      it('should create a submission', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000)
       });
     });
 
     describe('Get submission', () => {
-      it.todo('should get a submission');
+      it('of a question', () => {
+        return pactum
+          .spec()
+          .get('/submission/question/$S{que2Id}/all')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
+
+      it('of a user for a question', () => {
+        return pactum
+          .spec()
+          .get('/submission/user/question/$S{que2Id}')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
+
+      it('of a user', () => {
+        return pactum
+          .spec()
+          .get('/submission/user')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
     });
   });
 });

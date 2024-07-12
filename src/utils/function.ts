@@ -29,3 +29,13 @@ export async function CourseCodeGenerator() {
 
     return courseCode;
 }
+
+
+export function toBase64(str :string) {
+    return Buffer.from(str, 'utf-8').toString('base64')
+}
+
+export function toString(str: string | null):string  {
+    if (!str) return '';
+    return Buffer.from(str, 'base64').toString('utf-8')
+}

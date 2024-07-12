@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsBase64,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -37,8 +38,9 @@ class Code {
   @IsNotEmpty()
   language: string;
 
-  @IsString()
   @IsNotEmpty()
+  @IsString()
+  @IsBase64()
   code: string;
 }
 
@@ -56,8 +58,9 @@ export class NewQuestionDTO {
   @Transform(({ value }) => parseInt(value))
   points: number;
 
-  @IsString()
   @IsNotEmpty()
+  @IsString()
+  @IsBase64()
   testCases: string;
 
   @ValidateNested()

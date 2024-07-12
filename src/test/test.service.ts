@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestDTO, GetTestDTO } from './dto';
 import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+import { copyFileSync } from 'fs';
 // import { UserProvider } from '../user/user.service';
 
 @Injectable()
@@ -32,8 +33,8 @@ export class TestProvider {
       const test = await this.prismaService.test.create({
         data: {
           name: dto.name,
-          startTime: dto.date + 'T' + dto.startTime + ':00.000z',
-          endTime: dto.date + 'T' + dto.endTime + ':00.000z',
+          startTime: new Date(dto.date + 'T' + dto.startTime + ':00.000'),
+          endTime: new Date(dto.date + 'T' + dto.endTime + ':00.000'),
           allowedLanguages: dto.languages,
           evaluationScheme: dto.evaluationScheme,
           visibility: dto.visibility,

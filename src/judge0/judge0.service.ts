@@ -12,19 +12,46 @@ export class Judge0Service {
   async createSubmission(dto: CreateSubmissionDTO) {
     try {
       const data = await lastValueFrom(
-        this.httpService.post(
-          `https://${env.JUDGE0.HOST}/submissions`,
-          dto,  
-          {
-            headers: {
-              'x-rapidapi-key': env.JUDGE0.KEY,
-              'x-rapidapi-host': env.JUDGE0.HOST,
-              'Content-Type': 'application/json',
+        this.httpService
+          .post(
+            `https://${env.JUDGE0.HOST}/submissions/?base64_encoded=true&wait=true`,
+            dto,
+            {
+              headers: {
+                'x-rapidapi-key': env.JUDGE0.KEY,
+                'x-rapidapi-host': env.JUDGE0.HOST,
+                'Content-Type': 'application/json',
+              },
             },
-          },
-        ).pipe(map(res => res.data)),
+          )
+          .pipe(map((res) => res.data)),
       );
-      
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async createSubmissionBactch(subs: CreateSubmissionDTO[]) {
+    try {
+      const data = await lastValueFrom(
+        this.httpService
+          .post(
+            `https://${env.JUDGE0.HOST}/submissions/batch?base64_encoded=true`,
+            {
+              headers: {
+                'x-rapidapi-key': env.JUDGE0.KEY,
+                'x-rapidapi-host': env.JUDGE0.HOST,
+                'Content-Type': 'application/json',
+              },
+              date: {
+                submissions: subs
+              }
+            },
+          ).pipe(map(res => res))
+      );
+
       return data;
     } catch (err) {
       throw err;
@@ -34,21 +61,21 @@ export class Judge0Service {
   async getSubmission(dto: GetSubmissionDTO) {
     try {
       const data = await lastValueFrom(
-        this.httpService
-          .get(`https://${env.JUDGE0.HOST}/submissions/${dto.token}`, {
+        this.httpService.get(
+          `https://${env.JUDGE0.HOST}/submissions/${dto.token}`,
+          {
             headers: {
               'x-rapidapi-key': env.JUDGE0.KEY,
               'x-rapidapi-host': env.JUDGE0.HOST,
             },
-          })
+          },
+        ),
       );
       return data;
     } catch (err) {
       throw err;
     }
-  } 
-
-
+  }
 
   async about() {
     try {
