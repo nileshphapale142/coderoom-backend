@@ -1,15 +1,14 @@
 import {
   ConflictException,
-  ConsoleLogger,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { NewSubmisionDTO } from './dto';
+import { GetSubmissionDTO, NewSubmisionDTO } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Judge0Service } from '../judge0/judge0.service';
 import { CreateSubmissionDTO } from 'src/judge0/dto';
-import { languageSupport, SubmisionResult, toString } from '../utils';
+import { languageSupport, SubmisionResult } from '../utils';
 
 @Injectable()
 export class SubmissionProvider {
@@ -52,7 +51,7 @@ export class SubmissionProvider {
       };
 
       //todo: handle judge0 rate limit
-      
+
       const result: SubmisionResult =
         await this.judge0Service.createSubmission(submissionDTO);
 
@@ -125,6 +124,66 @@ export class SubmissionProvider {
       if (err instanceof PrismaClientKnownRequestError)
         throw new ConflictException('Submission already exists');
 
+      throw err;
+    }
+  }
+
+  async getSubmissionsQuestion(dto: GetSubmissionDTO) {
+    try {
+      const submissions =
+        await this.prismaService.studentSubmission.findMany({
+          where: { questionId: dto.queId },
+          select: {
+            submission: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+
+      return { submissions };
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getSubmissions(dto: GetSubmissionDTO) {
+    try {
+      const submissions =
+        await this.prismaService.studentSubmission.findMany({
+          where: { questionId: dto.queId, userId: dto.userId },
+          select: {
+            submission: true,
+          },
+        });
+
+      return { submissions };
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getSubmissionsUser(dto: { userId: number }) {
+    try {
+      const submissions =
+        await this.prismaService.studentSubmission.findMany({
+          where: { userId: dto.userId },
+          select: {
+            question: {
+              select: {
+                name: true,
+                id: true,
+              },
+            },
+            submission: true,
+          },
+        });
+
+      return { submissions };
+    } catch (err) {
       throw err;
     }
   }

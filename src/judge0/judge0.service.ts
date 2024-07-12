@@ -33,6 +33,31 @@ export class Judge0Service {
     }
   }
 
+  async createSubmissionBactch(subs: CreateSubmissionDTO[]) {
+    try {
+      const data = await lastValueFrom(
+        this.httpService
+          .post(
+            `https://${env.JUDGE0.HOST}/submissions/batch?base64_encoded=true`,
+            {
+              headers: {
+                'x-rapidapi-key': env.JUDGE0.KEY,
+                'x-rapidapi-host': env.JUDGE0.HOST,
+                'Content-Type': 'application/json',
+              },
+              date: {
+                submissions: subs
+              }
+            },
+          ).pipe(map(res => res))
+      );
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getSubmission(dto: GetSubmissionDTO) {
     try {
       const data = await lastValueFrom(

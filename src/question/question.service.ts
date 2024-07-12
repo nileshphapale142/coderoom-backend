@@ -52,6 +52,38 @@ export class QuestionProvider {
     }
   }
 
+  private async processSubmissionBatch(dto: CreateSubmissionDTO) {
+    type batchResult = {
+      token: string;
+    }
+    try {
+      const result =
+        await this.judge0Service.createSubmissionBactch([dto]);
+
+      // if (result.status.id === 5) {
+      //   throw new GatewayTimeoutException(
+      //     'Time limit exceeded for the test cases',
+      //   );
+      // } else if (result.status.id === 6) {
+      //   throw new BadRequestException(
+      //     'Compilation Error: ' + result.compile_output,
+      //   );
+      // } else if ([7, 8, 9, 10, 11, 12].includes(result.status.id)) {
+      //   throw new BadRequestException(
+      //     'Runtime error: ' + result.stderr,
+      //   );
+      // } else if (result.status.id === 14) {
+      //   throw new BadRequestException(
+      //     'Code execution failed: Exec format error. Please check your code and try again.',
+      //   );
+      // }
+
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async createQuestion(dto: NewQuestionDTO) {
     try {
       const test = await this.prismaService.test.findUnique({
@@ -106,11 +138,10 @@ export class QuestionProvider {
 
       //todo: handle judge0 rate limit
 
-      const result =
-        await this.processSubmission(submissionDTO);
+      const result = await this.processSubmission(submissionDTO);
 
       const testCases = await this.prismaService.testCase.create({
-        data: { 
+        data: {
           questionId: question.id,
           input: dto.testCases,
           output: result.stdout ? result.stdout : '',

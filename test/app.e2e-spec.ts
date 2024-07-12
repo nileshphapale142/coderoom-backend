@@ -82,6 +82,7 @@ describe('App e2e', () => {
           name: 'Ursa Major',
           email: 'ursa@gmail.com',
           password: '123',
+          enrollementId: '202111063',
           isTeacher: false,
         };
 
@@ -98,6 +99,7 @@ describe('App e2e', () => {
           name: 'Ursa minor',
           email: 'ursamin@gmail.com',
           password: '123',
+          enrollementId: '202111064',
           isTeacher: false,
         };
 
@@ -453,7 +455,7 @@ describe('App e2e', () => {
           evaluationScheme: 'static',
           visibility: 'private',
           courseId: '$S{course1Id}',
-          date: '2024-07-11',
+          date: '2024-07-12',
           startTime: '13:00',
           endTime: '23:00',
         };
@@ -703,6 +705,90 @@ int main() {
           .withRequestTimeout(5000);
       });
 
+      it('submission: error', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+// using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *min_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000)
+      });
+
+      it('submission: wrong answer', () => {
+        const dto: NewSubmisionDTO = {
+          code: {
+            language: 'cpp',
+            code: btoa(
+              `#include <bits/stdc++.h>
+using namespace std;           
+
+int main() {
+  int t;
+  cin >> t;
+  while (t--) {
+    int n;
+    cin >> n;
+    vector<int> nums;
+    for (int i = 0; i < n; i ++) {
+      int temp;
+      cin >> temp;
+      nums.push_back(temp);
+    }
+    cout << *max_element(nums.begin(), nums.end()) << endl;
+  }
+
+  return 0;
+}`,
+            ),
+          },
+          questionId: 1,
+        };
+
+        return pactum
+          .spec()
+          .post('/submission/new')
+          .withBearerToken('$S{ursaMajAt}')
+          .withBody({
+            ...dto,
+            questionId: '$S{que2Id}',
+          })
+          .expectStatus(201)
+          .withRequestTimeout(5000)
+      });       
+
       it('should create a submission', () => {
         const dto: NewSubmisionDTO = {
           code: {
@@ -742,12 +828,34 @@ int main() {
             questionId: '$S{que2Id}',
           })
           .expectStatus(201)
-          .withRequestTimeout(5000);
+          .withRequestTimeout(5000)
       });
     });
 
     describe('Get submission', () => {
-      it.todo('should get a submission');
+      it('of a question', () => {
+        return pactum
+          .spec()
+          .get('/submission/question/$S{que2Id}/all')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
+
+      it('of a user for a question', () => {
+        return pactum
+          .spec()
+          .get('/submission/user/question/$S{que2Id}')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
+
+      it('of a user', () => {
+        return pactum
+          .spec()
+          .get('/submission/user')
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(200)
+      });
     });
   });
 });

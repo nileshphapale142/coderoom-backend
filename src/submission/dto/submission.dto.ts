@@ -1,11 +1,11 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsBase64,
   ValidateNested,
+  IsInt,
 } from 'class-validator';
 
 class Code {
@@ -25,21 +25,27 @@ export class NewSubmisionDTO {
   @Type(() => Code)
   code: Code;
 
-  @IsNumber()
+  @IsInt()
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
   questionId: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
   studentId?: number;
 }
 
-export class SubmissionIDDTO {
-  @IsNumber()
+export class GetSubmissionDTO {
+  @IsInt()
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
-  id: number;
+  queId: number;
+
+
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  userId?: number;
 }
