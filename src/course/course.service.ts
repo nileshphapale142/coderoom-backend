@@ -250,13 +250,9 @@ export class CourseProvider {
       where: {
         code: dto.courseCode,
       },
-      include: {
-        teacher: {
-          select: {
-            name: true,
-          },
-        },
-      },
+      select: {
+        id: true
+      }
     });
 
     if (!course) throw new NotFoundException('Course does not exist');
@@ -270,7 +266,6 @@ export class CourseProvider {
           },
         });
 
-      delete course.teacherId;
 
       return { course };
     } catch (error) {
