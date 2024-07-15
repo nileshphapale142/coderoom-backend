@@ -21,7 +21,7 @@ export class UserProvider {
   async getCourses(user: User) {
     try {
       let courses = [];
-
+  
       if (user.isTeacher) {
         const userInfo = await this.prismaService.user.findUnique({
           where: { id: user.id },
@@ -56,7 +56,7 @@ export class UserProvider {
         );
       }
 
-      return { courses: courses };
+      return { courses, isTeacher:user.isTeacher };
     } catch (err) {
       if (err instanceof PrismaClientUnknownRequestError)
         throw new NotFoundException('User not fouund');
