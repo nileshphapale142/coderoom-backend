@@ -23,7 +23,8 @@ export class CreateTestDTO {
     @IsString()
     @IsNotEmpty()
     visibility: string;
-
+    
+    //todo: think about type of languages 
     @IsArray()
     @ArrayNotEmpty()
     @IsString({each: true})

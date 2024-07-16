@@ -10,20 +10,44 @@ export class AuthController {
   @Post('/signup')
   async signUp(@Body() dto: SignUpDto, @Res({passthrough: true}) response: Response) {
     const access_token = await this.authProvider.signUp(dto);
+    
+    const expiryDate = new Date()
+    expiryDate.setDate(expiryDate.getDate() + 30)
+    
     response.cookie('access_token', access_token.access_token, {
       httpOnly: true,
-      secure: true
+      secure: true,
+      expires: expiryDate
+    })
+
+    response.cookie('is_teacher', dto.isTeacher, {
+      httpOnly: false,
+      secure: true,
+      expires: expiryDate
     })
     return access_token
   }
 
   @Post('/signin')
   async signIn(@Body() dto: SignInDto, @Res({passthrough: true}) response: Response) {
-    const access_token =  await this.authProvider.signIn(dto);
-    response.cookie('access_token', access_token.access_token, {
+    const {at, isTeacher } =  await this.authProvider.signIn(dto);
+    const { access_token } = at
+    
+    const expiryDate = new Date()
+    expiryDate.setDate(expiryDate.getDate() + 30)
+        
+    response.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true
+      secure: true,
+      expires: expiryDate
     })
+    
+    response.cookie('is_teacher', isTeacher, {
+      httpOnly: false,
+      secure: true,
+      expires: expiryDate
+    })
+    
     return access_token
   }
 }

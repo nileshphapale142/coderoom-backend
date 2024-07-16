@@ -63,7 +63,7 @@ export class AuthProvider {
 
     if (!pwMatches) throw new ForbiddenException('Wrong password');
 
-    return this.signToken(user.id, user.email);
+    return { at: await this.signToken(user.id, user.email), isTeacher: user.isTeacher }
   }
 
   async signToken(
