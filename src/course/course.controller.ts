@@ -26,8 +26,9 @@ export class CourseController {
     }
 
     @Get(':id')
-    getCourse(@Param() dto: GetCourseDTO) {
-        return this.courseProvider.getCourse(dto)
+    getCourse(@GetUser() user:User, @Param() dto: GetCourseDTO) {
+      dto.userId = user.id;
+      return this.courseProvider.getCourse(dto);
     }
 
     @Get(':id/leaderboard')

@@ -45,6 +45,15 @@ export class CreateTestDTO {
     teacherId?: number;
 }
 
+export class EditTestDTO extends CreateTestDTO {
+  @IsOptional()
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({value}) => parseInt(value))
+  testId?: number;
+}
+
+
 export class GetTestDTO {
     @IsInt()
     @IsNotEmpty()

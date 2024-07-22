@@ -56,8 +56,10 @@ export const languages = [
 
 export const languageSupport = {
   cpp: 54,
+  'c++': 54,
   c: 50,
   python: 92,
+  java: 91
 };
 
 export const statuse = [

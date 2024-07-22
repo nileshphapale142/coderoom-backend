@@ -37,6 +37,7 @@ export class CourseProvider {
               id: true,
               name: true,
               startTime: true,
+              endTime: true,
               questions: {
                 select: {
                   points: true,
@@ -162,13 +163,31 @@ export class CourseProvider {
               id: true,
               name: true,
               startTime: true,
+              visibility: true
             },
           },
+          enrolledStudents: true,
         },
       });
 
       if (!course) throw new NotFoundException('Course not found');
+      const isUserStudent = course.enrolledStudents
+        .some(({ userId }) => dto.userId === userId);
+      
+      if (course.teacherId !== dto.userId 
+        && !isUserStudent)
+      throw new ForbiddenException('Not allowed to access course information')
+      
+      if (isUserStudent) {
+        course.tests = course.tests
+          .filter(test => test.visibility.toLowerCase() === 'public')
+      }
+      
       const leaderboard = await this.getShortLeaderboard(dto.id);
+      
+      
+      delete course.enrolledStudents
+      
       return {
         course: {
           ...course,
@@ -191,6 +210,10 @@ export class CourseProvider {
       },
       {},
     );
+    
+    const currTime = new Date();
+    
+    course.tests = course.tests.filter(test => test.endTime <= currTime)
 
     const tests = course.tests.reduce((prev, test) => {
       prev[test.id] = {

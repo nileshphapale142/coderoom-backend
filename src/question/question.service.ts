@@ -34,11 +34,11 @@ export class QuestionProvider {
         );
       } else if (result.status.id === 6) {
         throw new BadRequestException(
-          'Compilation Error: ' + result.compile_output,
+          'Compilation Error: ' + toString(result.compile_output),
         );
       } else if ([7, 8, 9, 10, 11, 12].includes(result.status.id)) {
         throw new BadRequestException(
-          'Runtime error: ' + result.stderr,
+          'Runtime error: ' + toString(result.stderr),
         );
       } else if (result.status.id === 14) {
         throw new BadRequestException(
@@ -100,6 +100,18 @@ export class QuestionProvider {
 
       if (dto.teacherId !== test.course.teacherId)
         throw new ForbiddenException('Unauthorized to add question');
+      
+      const submissionDTO: CreateSubmissionDTO = {
+        language_id: languageSupport[dto.solutionCode.language.toLowerCase()],
+        source_code: dto.solutionCode.code,
+        stdin: dto.testCases,
+      };
+      
+      //todo: handle judge0 rate limit
+      let result: SubmisionResult;
+      
+      result = await this.processSubmission(submissionDTO);
+      
 
       let question = await this.prismaService.question.create({
         data: {
@@ -129,17 +141,8 @@ export class QuestionProvider {
             };
           }),
         });
-
-      const submissionDTO: CreateSubmissionDTO = {
-        language_id: languageSupport[dto.solutionCode.language],
-        source_code: dto.solutionCode.code,
-        stdin: dto.testCases,
-      };
-
-      //todo: handle judge0 rate limit
-
-      const result = await this.processSubmission(submissionDTO);
-
+  
+      
       const testCases = await this.prismaService.testCase.create({
         data: {
           questionId: question.id,
@@ -158,6 +161,7 @@ export class QuestionProvider {
       });
 
       return { question };
+      
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError)
         throw new ConflictException('Question already exists');

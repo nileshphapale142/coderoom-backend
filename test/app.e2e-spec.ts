@@ -5,7 +5,7 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
 import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
-import { CreateTestDTO } from 'src/test/dto';
+import { CreateTestDTO, EditTestDTO } from 'src/test/dto';
 import { NewQuestionDTO } from 'src/question/dto';
 import { NewSubmisionDTO } from 'src/submission/dto';
 
@@ -204,9 +204,7 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .get('/user/getCourses')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}',
-          })
+          .withBearerToken('$S{adamAt}')
           .expectStatus(200);
       });
     });
@@ -455,9 +453,9 @@ describe('App e2e', () => {
           evaluationScheme: 'static',
           visibility: 'private',
           courseId: '$S{course1Id}',
-          date: '2024-07-12',
-          startTime: '13:00',
-          endTime: '23:00',
+          date: '2024-07-23',
+          startTime: '00:00',
+          endTime: '23:59',
         };
 
         return pactum
@@ -509,7 +507,35 @@ describe('App e2e', () => {
     });
 
     describe('Edit test', () => {
-      it.todo('edit test info');
+      const dto = {
+        name: 'Test 1 name changed',
+        languages: ['C++', 'C'],
+        evaluationScheme: 'static',
+        visibility: 'private',
+        courseId: '$S{course1Id}',
+        date: '2024-07-06',
+        startTime: '12:00',
+        endTime: '15:00',
+      };
+      
+      it('edit test info unauthorized', () => {
+        return pactum
+          .spec()
+          .patch('/test/$S{test1Id}/edit')
+          .withBody(dto)
+          .withBearerToken('$S{ursaMajAt}')
+          .expectStatus(403)
+      });
+      
+      it('edit test info', () => {
+        
+        return pactum
+          .spec()
+          .patch('/test/$S{test1Id}/edit')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+      });
     });
   });
 
@@ -592,7 +618,8 @@ int main() {
           .post('/question/new')
           .withBearerToken('$S{ursaMajAt}')
           .withBody({ ...dto, testId: '$S{test1Id}' })
-          .expectStatus(403);
+          .expectStatus(403)
+          .inspect();
       });
 
       it('Create a question', () => {

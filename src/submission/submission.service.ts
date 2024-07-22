@@ -159,6 +159,8 @@ export class SubmissionProvider {
             submission: true,
           },
         });
+      
+      submissions.sort((a, b) => b.submission.id - a.submission.id);
 
       return { submissions };
     } catch (err) {

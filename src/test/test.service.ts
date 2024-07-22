@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTestDTO, GetTestDTO } from './dto';
-import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+import { CreateTestDTO, EditTestDTO, GetTestDTO } from './dto';
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
 import { copyFileSync } from 'fs';
 // import { UserProvider } from '../user/user.service';
 
@@ -56,9 +56,7 @@ export class TestProvider {
         where: {
           id: dto.id,
         },
-        select: {
-          name: true,
-          id: true,
+        include: {
           questions: {
             select: {
               id: true,
@@ -228,5 +226,48 @@ export class TestProvider {
     }
   }
 
-  updateTest() {}
+  async updateTest(dto: EditTestDTO) {
+    try  {
+      const course = await this.prismaService.course.findUnique({
+        where: { id: dto.courseId },
+        select: {
+          teacherId: true,
+        },
+      });
+      
+      if (!course) throw new NotFoundException('Course not found');
+      
+      if (course.teacherId !== dto.teacherId) {
+        throw new ForbiddenException('Not authorized to edit test info'); 
+      } 
+      
+      // console.log(course);
+      // console.log(dto);
+      
+      
+      const test = await this.prismaService.test.update({
+        where: {id: dto.testId},
+        data: {
+          name: dto.name,
+          startTime: new Date(dto.date + 'T' + dto.startTime + ':00.000'),
+          endTime: new Date(dto.date + 'T' + dto.endTime + ':00.000'),
+          allowedLanguages: dto.languages,
+          evaluationScheme: dto.evaluationScheme,
+          visibility: dto.visibility,
+        },
+      });
+      
+      const updatedTest = await this.prismaService.test.findUnique({
+        where: { id: dto.testId }
+      });
+      
+      return { test: updatedTest };
+      
+    } catch(error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+          throw new NotFoundException(`Test not found`);
+      }
+      throw error;
+    }
+  }
 }

@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { TestProvider } from './test.service';
-import { CreateTestDTO, GetTestDTO } from './dto';
+import { CreateTestDTO, EditTestDTO, GetTestDTO } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator';
 import { User } from '@prisma/client';
@@ -31,8 +31,10 @@ export class TestController {
         return this.testProvider.getSubmissions(dto)
     }
 
-    @Put('update')
-    updateTest() {
-        this.testProvider.updateTest()
+    @Patch(':id/edit')
+    updateTest(@GetUser() user: User, @Param('id') id: number, @Body() dto: EditTestDTO) {
+      dto.testId = id;
+      dto.teacherId = user.id;
+      return this.testProvider.updateTest(dto);
     }
 }

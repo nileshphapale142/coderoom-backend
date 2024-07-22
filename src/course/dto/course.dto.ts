@@ -17,10 +17,16 @@ export class CreateCourseDTO {
 }
 
 export class GetCourseDTO {
-    @IsInt()
-    @IsNotEmpty()
-    @Transform(({value})  => parseInt(value))
-    id: number
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  id: number;
+  
+  @IsOptional()
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  userId?: number;
 }
 
 export class AddStudentDTO {

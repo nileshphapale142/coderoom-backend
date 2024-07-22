@@ -9,15 +9,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-// class IO {
-//   @IsString()
-//   @IsNotEmpty()
-//   type: string;
-
-//   @IsString()
-//   @IsNotEmpty()
-//   name: string;
-// }
 
 class ExampleTestCase {
   @IsNotEmpty()
@@ -71,14 +62,6 @@ export class NewQuestionDTO {
   @ValidateNested({ each: true })
   @Type(() => ExampleTestCase)
   exampleTestCases: ExampleTestCase[];
-
-  // @ValidateNested({each: true})
-  // @Type(() =>IO)
-  // inputs: IO[]
-
-  // @ValidateNested()
-  // @Type(() => IO)
-  // output: IO
 
   @IsInt()
   @IsNotEmpty()
