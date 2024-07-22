@@ -1,12 +1,10 @@
-import { Body, Controller, Get, Post, Put, UseGuards, Param } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Param, Patch } from '@nestjs/common';
 import { JwtGuard } from '../auth/guard';
 import { CourseProvider } from './course.service';
-import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
+import { AddStudentDTO, CreateCourseDTO, EditCourseDTO, GetCourseDTO } from './dto';
 import { GetUser } from '../auth/decorator';
 import { User } from '@prisma/client';
 
-
-//TODO: 3. Create endpoint for updating neccessay course info (PUT/PATCH)
 
 @UseGuards(JwtGuard)
 @Controller('course')
@@ -37,8 +35,15 @@ export class CourseController {
     }
 
 
-    @Put('update')
-    updateCourse() {
-        return this.courseProvider.updateCourse()
+    @Patch(':id/edit')
+    updateCourse(
+      @GetUser() user: User, 
+      @Param('id') id: number, 
+      @Body() dto: EditCourseDTO 
+    ) {
+      
+      dto.courseId = id;
+      dto.teacherId = user.id;
+      return this.courseProvider.updateCourse(dto);
     }
 }

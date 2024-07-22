@@ -257,11 +257,7 @@ export class TestProvider {
         },
       });
       
-      const updatedTest = await this.prismaService.test.findUnique({
-        where: { id: dto.testId }
-      });
-      
-      return { test: updatedTest };
+      return { test };
       
     } catch(error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {

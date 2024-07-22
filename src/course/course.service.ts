@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddStudentDTO, CreateCourseDTO, GetCourseDTO } from './dto';
+import { AddStudentDTO, CreateCourseDTO, EditCourseDTO, GetCourseDTO } from './dto';
 import { CourseCodeGenerator } from '../utils';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserProvider } from '../user/user.service';
@@ -302,7 +302,34 @@ export class CourseProvider {
     }
   }
 
-  updateCourse() {
-    return 'course updated';
+  async updateCourse(dto: EditCourseDTO) {
+    try {
+
+      let course = await this.prismaService.course.findUnique({
+        where: { id: dto.courseId },
+        select: {
+          teacherId: true
+        }
+      });
+      
+      
+      if (!course) throw new NotFoundException('Course not found');
+      
+      if (course.teacherId !== dto.teacherId)
+        throw new ForbiddenException('Unauthorized to edit course info');
+      
+      course = await this.prismaService.course.update({
+        where: { id: dto.courseId },
+        data: {
+          name: dto.name,
+          description: dto.description
+        }
+      });
+      
+      return { course };
+      
+    } catch(err) {
+      throw err;
+    }
   }
 }

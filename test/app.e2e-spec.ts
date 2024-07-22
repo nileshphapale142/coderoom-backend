@@ -4,7 +4,7 @@ import * as pactum from 'pactum';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { SignInDto, SignUpDto } from '../src/auth/dto';
-import { AddStudentDTO, CreateCourseDTO } from 'src/course/dto';
+import { AddStudentDTO, CreateCourseDTO, EditCourseDTO } from 'src/course/dto';
 import { CreateTestDTO, EditTestDTO } from 'src/test/dto';
 import { NewQuestionDTO } from 'src/question/dto';
 import { NewSubmisionDTO } from 'src/submission/dto';
@@ -376,7 +376,19 @@ describe('App e2e', () => {
     });
 
     describe('Edit course', () => {
-      it.todo('should edit course info');
+      it('should edit course info', () => {
+        const dto:EditCourseDTO = {
+          name: 'Course 1 name changed',
+          description: 'First course',
+        };
+        
+        return pactum
+          .spec()
+          .patch('/course/$S{course1Id}/edit')
+          .withBody(dto)
+          .withBearerToken('$S{adamAt}')
+          .expectStatus(200)
+      });
     });
   });
 

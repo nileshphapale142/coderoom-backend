@@ -40,3 +40,11 @@ export class AddStudentDTO {
     @Transform(({value}) => parseInt(value))
     id?: number;
 }
+
+export class EditCourseDTO extends CreateCourseDTO {
+  @IsOptional()
+  @IsInt()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  courseId?: number;
+}

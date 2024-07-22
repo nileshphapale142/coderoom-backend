@@ -32,7 +32,11 @@ export class TestController {
     }
 
     @Patch(':id/edit')
-    updateTest(@GetUser() user: User, @Param('id') id: number, @Body() dto: EditTestDTO) {
+    updateTest(
+      @GetUser() user: User, 
+      @Param('id') id: number, 
+      @Body() dto: EditTestDTO
+    ) {
       dto.testId = id;
       dto.teacherId = user.id;
       return this.testProvider.updateTest(dto);
