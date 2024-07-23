@@ -67,9 +67,6 @@ export class TestProvider {
         },
       });
       
-      console.log({ dto });
-      console.log({ test });
-      
       if (!test) throw new NotFoundException('Test not found');
 
       return {test};
@@ -231,6 +228,7 @@ export class TestProvider {
 
   async updateTest(dto: EditTestDTO) {
     try  {
+      // console.log({ dto });
       const course = await this.prismaService.course.findUnique({
         where: { id: dto.courseId },
         select: {

@@ -304,8 +304,7 @@ export class CourseProvider {
 
   async updateCourse(dto: EditCourseDTO) {
     try {
-
-      let course = await this.prismaService.course.findUnique({
+        let course = await this.prismaService.course.findUnique({
         where: { id: dto.courseId },
         select: {
           teacherId: true

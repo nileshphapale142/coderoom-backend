@@ -41,7 +41,6 @@ export class CourseController {
       @Param('id') id: number, 
       @Body() dto: EditCourseDTO 
     ) {
-      
       dto.courseId = id;
       dto.teacherId = user.id;
       return this.courseProvider.updateCourse(dto);
