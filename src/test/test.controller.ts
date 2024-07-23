@@ -20,6 +20,11 @@ export class TestController {
     getTest(@Param() dto: GetTestDTO) {
         return this.testProvider.getTest(dto)
     }
+    
+    @Get(':id/name')
+    getTestName(@Param() dto: GetTestDTO) {
+      return this.testProvider.getTestName(dto)
+    }
 
     @Get(':id/leaderboard') 
     getLeaderboard(@Param() dto: GetTestDTO) {

@@ -198,6 +198,29 @@ export class CourseProvider {
       throw err;
     }
   }
+  
+  async getCourseName(dto: GetCourseDTO) {
+    try {
+      const course = await this.prismaService.course.findUnique({
+        where: { id: dto.id },
+        select: {
+          name: true,
+          enrolledStudents: true,
+          teacherId: true
+        }
+      });
+            
+      if (dto.userId !== course.teacherId 
+        && !course.enrolledStudents.some((student) => student.userId === dto.userId)
+        ) {
+        throw new ForbiddenException('Not authorized');
+      };
+      
+      return { name: course.name };
+    } catch(err) {
+      throw err;
+    }
+  }
 
   async getLeaderboard(dto: GetCourseDTO) {
     const course = await this.getCourseInfo(dto.id);

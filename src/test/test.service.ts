@@ -74,6 +74,27 @@ export class TestProvider {
       throw err;
     }
   }
+  
+  async getTestName(dto:GetTestDTO) {
+    try {
+    //todo: maximum points and available points of a question
+    
+    const test = await this.prismaService.test.findUnique({
+      where: {
+        id: dto.id,
+      },
+      select: {
+        name: true
+      }
+    });
+      
+      if (!test) throw new NotFoundException('Test not found');
+    
+      return {name: test.name};
+    } catch (err) {
+      throw err;
+    }
+  }
 
   async getLeaderboard(dto: GetTestDTO) {
     try {

@@ -28,6 +28,12 @@ export class CourseController {
       dto.userId = user.id;
       return this.courseProvider.getCourse(dto);
     }
+    
+    @Get(':id/name')
+    getCourseName(@GetUser() user: User, @Param() dto: GetCourseDTO) {
+      dto.userId = user.id;
+      return this.courseProvider.getCourseName(dto);
+    }
 
     @Get(':id/leaderboard')
     getLeaderboard(@Param() dto: GetCourseDTO) {

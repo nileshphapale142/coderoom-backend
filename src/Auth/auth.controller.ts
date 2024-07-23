@@ -38,13 +38,13 @@ export class AuthController {
         
     response.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       expires: expiryDate
     })
     
     response.cookie('is_teacher', isTeacher, {
       httpOnly: false,
-      secure: true,
+      secure: false,
       expires: expiryDate
     })
     
