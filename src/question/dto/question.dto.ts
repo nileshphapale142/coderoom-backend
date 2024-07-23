@@ -17,7 +17,7 @@ class ExampleTestCase {
 
   @IsNotEmpty()
   @IsString()
-  ouput: string;
+  output: string;
 
   @IsNotEmpty()
   @IsString()
@@ -80,11 +80,6 @@ export class GetQuestionDTO {
   @Transform(({ value }) => parseInt(value))
   id: number;
 
-  // @IsInt()
-  // @IsNotEmpty()
-  // @Transform(({ value }) => parseInt(value))
-  // testId: number;
-
   @IsOptional()
   @IsInt()
   @Transform(({ value }) => parseInt(value))
@@ -101,4 +96,12 @@ export class AddStudentPointsDTO {
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value))
   points: number;
+}
+
+
+export class EditQuestionDTO extends NewQuestionDTO {
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  questionId?: number;
 }

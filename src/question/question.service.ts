@@ -1,20 +1,22 @@
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  GatewayTimeoutException,
-  Injectable,
-  NotFoundException,
+    BadRequestException,
+    ConflictException,
+    ForbiddenException,
+    GatewayTimeoutException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { GetQuestionDTO, NewQuestionDTO } from './dto';
 import {
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
+    PrismaClientKnownRequestError,
+    PrismaClientUnknownRequestError,
 } from '@prisma/client/runtime/library';
-import { Judge0Service } from '../judge0/judge0.service';
 import { CreateSubmissionDTO } from '../judge0/dto';
+import { Judge0Service } from '../judge0/judge0.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { languageSupport, SubmisionResult, toString } from '../utils';
+import { EditQuestionDTO, GetQuestionDTO, NewQuestionDTO } from './dto';
+import { NotFoundError } from 'rxjs';
+import { exit } from 'process';
 
 @Injectable()
 export class QuestionProvider {
@@ -121,6 +123,7 @@ export class QuestionProvider {
           testId: dto.testId,
         },
       });
+    
 
       const solution = await this.prismaService.code.create({
         data: {
@@ -136,7 +139,7 @@ export class QuestionProvider {
             return {
               questionId: question.id,
               input: testCase.input,
-              output: testCase.ouput,
+              output: testCase.output,
               explaination: testCase.explaination,
             };
           }),
@@ -159,7 +162,8 @@ export class QuestionProvider {
           exampleTestCases: true,
         },
       });
-
+      
+      
       return { question };
       
     } catch (err) {
@@ -261,6 +265,130 @@ export class QuestionProvider {
           'Student already has points for the question',
         );
 
+      throw err;
+    }
+  }
+  
+  
+  async updateQuestion(dto: EditQuestionDTO) {
+    try {
+      const existingQuestion = await this.prismaService.question.findUnique({
+        where: { id: dto.questionId },
+        include: {
+          solution: true,
+          exampleTestCases: true,
+          testCases: true,
+          Test: {
+            select: {
+              course: {
+                select: {
+                  teacherId: true
+                }
+              }
+            }
+          }
+        }
+    });
+
+      if (!existingQuestion) throw new NotFoundException('Question not found');
+      if (existingQuestion.Test.course.teacherId !== dto.teacherId) throw new ForbiddenException('Unauthorized to edit question');
+      
+      const updatedQuestion = await this.prismaService.question.update({
+        where: { id: dto.questionId },
+        data: {
+          name: dto.name,
+          points: dto.points,
+          statement: dto.description,
+        }
+      });
+      
+      //todo: optimize
+      if (dto.exampleTestCases.length >= existingQuestion.exampleTestCases.length) {
+        const etcUpdates = existingQuestion.exampleTestCases.map(async (etc, idx) => {
+          return await this.prismaService.exampleTestCase.update({
+            where: {id: etc.id},
+            data: {
+              ...dto.exampleTestCases[idx]
+            }
+          })
+        })
+        
+        if (dto.exampleTestCases.length > existingQuestion.exampleTestCases.length) {
+          dto.exampleTestCases = dto.exampleTestCases.slice(existingQuestion.exampleTestCases.length);
+          
+          const etcs =
+            await this.prismaService.exampleTestCase.createMany({
+              data: dto.exampleTestCases.map((testCase) => {
+                return {
+                  questionId: dto.questionId,
+                  input: testCase.input,
+                  output: testCase.output,
+                  explaination: testCase.explaination,
+                };
+              }),
+            });
+        }
+      } else {
+        const toBeDeleted = existingQuestion.exampleTestCases.slice(dto.exampleTestCases.length)
+        const notDeleted = existingQuestion.exampleTestCases.slice(0, dto.exampleTestCases.length)
+        
+        const etcDeleted = toBeDeleted.map(async (etc) => {
+          return await this.prismaService.exampleTestCase.delete({
+            where: { id: etc.id }
+          })
+        });
+        
+        const etcUpdated = notDeleted.map(async (etc, idx) => {
+          return await this.prismaService.exampleTestCase.update({
+            where: { id: etc.id },
+            data: { ...dto.exampleTestCases[idx] }
+          })
+        });
+      } 
+
+      if (
+        dto.solutionCode.language.toLowerCase() !== existingQuestion.solution[0].language.toLowerCase()
+        || dto.solutionCode.code !== existingQuestion.solution[0].code
+       || dto.testCases !== existingQuestion.testCases.input 
+        ) {
+          
+          const submissionDTO: CreateSubmissionDTO = {
+            language_id: languageSupport[dto.solutionCode.language.toLowerCase()],
+            source_code: dto.solutionCode.code,
+            stdin: dto.testCases,
+          };
+          
+          const result = await this.processSubmission(submissionDTO); 
+          
+          const solution = await this.prismaService.code.update({
+            where: {id: existingQuestion.solution[0].id},
+            data: {
+              code: dto.solutionCode.code,
+              language: dto.solutionCode.language,
+            },
+          });
+          
+          const testCases = await this.prismaService.testCase.update({
+            where: {id: existingQuestion.testCases.id},
+            data: {
+              input: dto.testCases,
+              output: result.stdout ? result.stdout : '',
+            },
+          });
+      };
+      
+      const question = await this.prismaService.question.findUnique({
+        where: { id: dto.questionId },
+        include: {
+          solution: true,
+          testCases: true,
+          exampleTestCases: true,
+        },
+      });
+      
+      
+      return { question };
+    } catch(err ) {
       throw err;
     }
   }

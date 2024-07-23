@@ -13,7 +13,7 @@ export class TestController {
     @Post('new')
     createTest(@GetUser() user: User, @Body() dto:  CreateTestDTO) {
         dto.teacherId = user.id
-        return this.testProvider.createTest(dto)
+      return this.testProvider.createTest(dto);
     }
 
     @Get(':id')

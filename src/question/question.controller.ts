@@ -3,12 +3,13 @@ import {
   Controller,
   Get,
   Param,
-  Post,
-  UseGuards,
+  Patch,
+  Post, UseGuards
 } from '@nestjs/common';
 import { QuestionProvider } from './question.service';
 import {
   AddStudentPointsDTO,
+  EditQuestionDTO,
   GetQuestionDTO,
   NewQuestionDTO,
 } from './dto';
@@ -45,4 +46,13 @@ export class QuestionController {
     });
   }
   
+  @Patch(':id/edit')
+  updateQuestion(
+    @GetUser() user: User, 
+    @Param('id') id: number, 
+    @Body() dto:EditQuestionDTO) {
+    dto.questionId = id;
+    dto.teacherId = user.id;
+    return this.questionProvider.updateQuestion(dto);
+  }
 }

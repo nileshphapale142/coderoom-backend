@@ -66,7 +66,10 @@ export class TestProvider {
           },
         },
       });
-
+      
+      console.log({ dto });
+      console.log({ test });
+      
       if (!test) throw new NotFoundException('Test not found');
 
       return {test};
