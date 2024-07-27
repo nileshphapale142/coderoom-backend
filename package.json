@@ -25,7 +25,7 @@
     "start:watch": "nest start --watch",
     "start:dev": "docker start coderoom-backend-dev-db-1 && nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "docker start coderoom-backend-dev-db-1 && node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "dotenv -e .env.test -- jest",
     "test:watch": "dotenv -e .env.test -- jest --watch",

@@ -215,6 +215,12 @@ export class QuestionProvider {
           where: { id: dto.id },
           include: {
             exampleTestCases: true,
+            Test: {
+              select: {
+                endTime: true, 
+                allowedLanguages: true
+              }
+            }
           },
         });
 
