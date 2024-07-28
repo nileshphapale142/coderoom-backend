@@ -19,7 +19,6 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: 'https://coderoom-backend.onrender.com',
       expires: expiryDate
     })
 
@@ -27,7 +26,6 @@ export class AuthController {
       httpOnly: false,
       secure: true,
       sameSite: 'none',
-      domain: 'https://coderoom-backend.onrender.com',
       expires: expiryDate
     })
     return access_token
@@ -43,17 +41,15 @@ export class AuthController {
 
     response.cookie('access_token', access_token, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: 'none',
-      domain: 'https://coderoom-backend.onrender.com',
       expires: expiryDate
     })
 
     response.cookie('is_teacher', isTeacher, {
       httpOnly: false,
-      secure: false,
+      secure: true,
       sameSite: 'none',
-      domain: 'https://coderoom-backend.onrender.com',
       expires: expiryDate
     })
 
