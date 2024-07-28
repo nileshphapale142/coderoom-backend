@@ -15,23 +15,21 @@ export class AuthController {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
-    response.cookie('access_token', access_token.access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      partitioned: true,
-      // domain: '.onrender.com',
-      expires: expiryDate
-    })
-
-    response.cookie('is_teacher', dto.isTeacher, {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'none',
-      partitioned: true,
-      // domain: '.onrender.com',
-      expires: expiryDate
-    })
+    response.cookie('access_token', access_token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        expires: expiryDate
+      });
+    
+      response.cookie('is_teacher', dto.isTeacher, {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'none',
+        expires: expiryDate
+      });
+    
+    response.header('Content-Type', 'application/json');
     return access_token
   }
 
@@ -44,22 +42,21 @@ export class AuthController {
     expiryDate.setDate(expiryDate.getDate() + 30)
 
     response.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      partitioned: true,
-      // domain: '.onrender.com',
-      expires: expiryDate
-    })
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        expires: expiryDate
+      });
+    
+      response.cookie('is_teacher', isTeacher, {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'none',
+        expires: expiryDate
+      });
+    
+    response.header('Content-Type', 'application/json');
 
-    response.cookie('is_teacher', isTeacher, {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'none',
-      partitioned: true,
-      // domain: '.onrender.com',
-      expires: expiryDate
-    })
 
     return access_token
   }
