@@ -19,6 +19,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        partitioned: true,
         expires: expiryDate
       });
     
@@ -26,6 +27,7 @@ export class AuthController {
         httpOnly: false,
         secure: true,
         sameSite: 'none',
+        partitioned: true,
         expires: expiryDate
       });
     
@@ -45,6 +47,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        partitioned: true,
         expires: expiryDate
       });
     
@@ -52,6 +55,7 @@ export class AuthController {
         httpOnly: false,
         secure: true,
         sameSite: 'none',
+        partitioned: true,
         expires: expiryDate
       });
     
