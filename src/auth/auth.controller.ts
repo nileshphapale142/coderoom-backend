@@ -20,7 +20,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       partitioned: true,
-      domain: 'https://coderoom-3l5j.onrender.com',
+      domain: '.onrender.com',
       expires: expiryDate
     })
 
@@ -29,7 +29,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       partitioned: true,
-      domain: 'https://coderoom-3l5j.onrender.com',
+      domain: '.onrender.com',
       expires: expiryDate
     })
     return access_token
@@ -48,7 +48,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       partitioned: true,
-      domain: 'https://coderoom-3l5j.onrender.com',
+      domain: '.onrender.com',
       expires: expiryDate
     })
 
@@ -57,7 +57,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
       partitioned: true,
-      domain: 'https://coderoom-3l5j.onrender.com',
+      domain: '.onrender.com',
       expires: expiryDate
     })
 
