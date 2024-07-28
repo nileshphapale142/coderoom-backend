@@ -16,16 +16,16 @@ export class AuthController {
     expiryDate.setDate(expiryDate.getDate() + 30);
 
     response.cookie('access_token', access_token.access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
       expires: expiryDate
     })
 
     response.cookie('is_teacher', dto.isTeacher, {
       httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       expires: expiryDate
     })
     return access_token
@@ -40,16 +40,16 @@ export class AuthController {
     expiryDate.setDate(expiryDate.getDate() + 30)
 
     response.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax',
       expires: expiryDate
     })
 
     response.cookie('is_teacher', isTeacher, {
       httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       expires: expiryDate
     })
 
