@@ -1,19 +1,16 @@
 import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestDTO, EditTestDTO, GetTestDTO } from './dto';
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
-import { copyFileSync } from 'fs';
-// import { UserProvider } from '../user/user.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class TestProvider {
   constructor(
     private prismaService: PrismaService,
-    // private userService: UserProvider,
   ) {}
 
   async createTest(dto: CreateTestDTO) {
