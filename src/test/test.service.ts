@@ -1,12 +1,12 @@
 import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestDTO, EditTestDTO, GetTestDTO } from './dto';
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
-import { copyFileSync } from 'fs';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { convertToIndianTime, convertToUTC } from 'src/utils';
 // import { UserProvider } from '../user/user.service';
 
 @Injectable()
@@ -33,8 +33,8 @@ export class TestProvider {
       const test = await this.prismaService.test.create({
         data: {
           name: dto.name,
-          startTime: new Date(dto.date + 'T' + dto.startTime + ':00.000'),
-          endTime: new Date(dto.date + 'T' + dto.endTime + ':00.000'),
+          startTime: new Date(convertToUTC(dto.startTime, dto.date)),
+          endTime: new Date(convertToUTC(dto.endTime, dto.date)),
           allowedLanguages: dto.languages,
           evaluationScheme: dto.evaluationScheme,
           visibility: dto.visibility,
@@ -68,8 +68,15 @@ export class TestProvider {
       });
       
       if (!test) throw new NotFoundException('Test not found');
-
-      return {test};
+      
+      return {
+        test: {
+          ...test,
+          startTime: convertToIndianTime(test.startTime),
+          endTime: convertToIndianTime(test.endTime),
+        }
+      };
+      
     } catch (err) {
       throw err;
     }
