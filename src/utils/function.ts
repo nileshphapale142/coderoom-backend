@@ -5,7 +5,7 @@ interface types {
 }
 
 
-export function getRandomIntInclusive(min, max) {
+export function getRandomIntInclusive(min:number, max:number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -38,4 +38,14 @@ export function toBase64(str :string) {
 export function toString(str: string | null):string  {
     if (!str) return '';
     return Buffer.from(str, 'base64').toString('utf-8')
+}
+
+
+export function convertToUTC(indianTimeString:string, dateString:string) {
+  const indianTime = new Date(`${dateString}T${indianTimeString}:00+05:30`);
+  return indianTime.toUTCString();
+}
+
+export function convertToIndianTime(utcDate) {
+  return new Date(utcDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
 }
