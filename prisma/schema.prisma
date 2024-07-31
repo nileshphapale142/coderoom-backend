@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -73,6 +67,7 @@ model Question {
   name      String
   statement String
   points    Int
+  availablePoints Int
 
   testId Int
   Test   Test @relation(fields: [testId], references: [id], onDelete: Cascade)
@@ -85,10 +80,6 @@ model Question {
   StudentSubmission StudentSubmission[]
 
   solution      Code[] @relation("QuestionSolution")
-  // executionCode Code[] @relation("QuestionExecution")
-
-  // inputs           IO[]              @relation("InputRelations")
-  // outputs          IO[]              @relation("OutputRelations")
 }
 
 model TestCase {
@@ -110,19 +101,6 @@ model ExampleTestCase {
   Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
-// model IO {
-//   id   Int    @id @default(autoincrement())
-//   type String
-//   name String
-
-//   inputQuestionId  Int?
-//   outputQuestionId Int?
-//   inputQuestion    Question? @relation("InputRelations", fields: [inputQuestionId], references: [id], onDelete: Cascade)
-//   outputQuestion   Question? @relation("OutputRelations", fields: [outputQuestionId], references: [id], onDelete: Cascade)
-
-//   @@unique([inputQuestionId, outputQuestionId])
-// }
-
 model Code {
   id       Int    @id @default(autoincrement())
   language String
@@ -130,9 +108,6 @@ model Code {
 
   solQueId     Int?
   solQuestion  Question? @relation("QuestionSolution", fields: [solQueId], references: [id], onDelete: Cascade)
-
-  // execQueId    Int?
-  // execQuestion Question? @relation("QuestionExecution", fields: [execQueId], references: [id])
 }
 
 //todo: change name to student points
