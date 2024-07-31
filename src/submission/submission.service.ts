@@ -28,6 +28,7 @@ export class SubmissionProvider {
             select: {
               startTime: true,
               endTime: true,
+              evaluationScheme: true,
             },
           },
         },
@@ -100,11 +101,14 @@ export class SubmissionProvider {
           });
 
         if (hasPoints === 0) {
-          const question =
+          //todo: think about encapsulating logic of this into question service;
+          
+          const questionPoints =
             await this.prismaService.question.findUnique({
               where: { id: dto.questionId },
               select: {
                 points: true,
+                availablePoints: true,
               },
             });
 
@@ -113,9 +117,29 @@ export class SubmissionProvider {
               data: {
                 userId: dto.studentId,
                 questionId: dto.questionId,
-                points: question.points,
+                points: questionPoints.availablePoints,
               },
             });
+          
+          if (question.Test.evaluationScheme.toLowerCase() === "dynamic") {
+
+            const num_of_submissions = await this.prismaService.studentQuestion.count({
+              where: { questionId: dto.questionId }
+            });
+
+            const submissions_to_reduce_pts = Math.ceil(200 / questionPoints.points);
+
+            if (num_of_submissions !== 0 && num_of_submissions % submissions_to_reduce_pts === 0) {
+              const question_point_update = await this.prismaService.question.update({
+                where: {
+                  id: dto.questionId
+                },
+                data: {
+                  availablePoints: Math.max(questionPoints.availablePoints - 1, Math.round(questionPoints.points / 2))
+                }
+              })
+            }
+          }
         }
       }
 

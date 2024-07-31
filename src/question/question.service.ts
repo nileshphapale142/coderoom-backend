@@ -15,8 +15,6 @@ import { Judge0Service } from '../judge0/judge0.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { languageSupport, SubmisionResult, toString } from '../utils';
 import { EditQuestionDTO, GetQuestionDTO, NewQuestionDTO } from './dto';
-import { NotFoundError } from 'rxjs';
-import { exit } from 'process';
 
 @Injectable()
 export class QuestionProvider {
@@ -121,10 +119,11 @@ export class QuestionProvider {
           statement: dto.description,
           points: dto.points,
           testId: dto.testId,
+          availablePoints: dto.points
         },
-      });
-    
+      });           
 
+      
       const solution = await this.prismaService.code.create({
         data: {
           solQueId: question.id,
@@ -162,6 +161,7 @@ export class QuestionProvider {
           exampleTestCases: true,
         },
       });
+      
       
       
       return { question };
@@ -223,11 +223,16 @@ export class QuestionProvider {
             }
           },
         });
+        
 
         if (!question)
           throw new NotFoundException('Question not found');
 
-        return { question };
+
+        return {
+          question
+        };
+        
       } else {
         throw new ForbiddenException(
           'Not allowed to access question',

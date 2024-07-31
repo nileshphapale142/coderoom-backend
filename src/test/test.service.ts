@@ -3,17 +3,16 @@ import {
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestDTO, EditTestDTO, GetTestDTO } from './dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { convertToIndianTime, convertToUTC } from 'src/utils';
-// import { UserProvider } from '../user/user.service';
+
 
 @Injectable()
 export class TestProvider {
   constructor(
     private prismaService: PrismaService,
-    // private userService: UserProvider,
   ) {}
 
   async createTest(dto: CreateTestDTO) {
@@ -62,11 +61,12 @@ export class TestProvider {
               id: true,
               name: true,
               points: true,
+              availablePoints: true,
             },
           },
         },
       });
-      
+            
       if (!test) throw new NotFoundException('Test not found');
       
       return {
