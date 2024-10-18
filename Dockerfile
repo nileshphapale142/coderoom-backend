@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5000
+ENV PORT 8080
 
-CMD ["npm", "run", "start:watch"]
+EXPOSE 8080
+
+CMD ["npm", "run", "start:image"]
