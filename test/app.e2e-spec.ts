@@ -585,14 +585,14 @@ describe('App e2e', () => {
               1
               1
               `,
-            ouput: '1',
+            output: '1',
             explaination: '1 is the minimum element',
           },
           {
             input: `
               3
               4 2 5`,
-            ouput: '2',
+            output: '2',
             explaination: '2 is the smallest element',
           },
         ],

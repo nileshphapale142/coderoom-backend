@@ -9,7 +9,10 @@ export const env = {
     FLASH_MODEL: process.env.GEMINI_FLASH_MODEL || 'gemini-1.5-flash',
   },
   JUDGE0: {
-    KEY: process.env.X_RAPIDAPI_KEY || '',
-    HOST: process.env.X_RAPIDAPI_HOST || ''
+    // KEY: process.env.X_RAPIDAPI_KEY || '',
+    // HOST: process.env.X_RAPIDAPI_HOST || ''
+    
+    KEY: process.env.SULU_API_KEY || '',
+    HOST: process.env.SULU_API_HOST || ''
   }
 };

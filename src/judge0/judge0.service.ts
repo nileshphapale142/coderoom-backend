@@ -8,27 +8,31 @@ import { CreateSubmissionDTO, GetSubmissionDTO } from './dto';
 @Injectable()
 export class Judge0Service {
   constructor(private readonly httpService: HttpService) {}
-
   async createSubmission(dto: CreateSubmissionDTO) {
+  // console.log(env.JUDGE0.HOST, ' ', env.JUDGE0.KEY)
+  
+  // console.log(dto)
     try {
       const data = await lastValueFrom(
         this.httpService
           .post(
-            `https://${env.JUDGE0.HOST}/submissions/?base64_encoded=true&wait=true`,
+            `https://${env.JUDGE0.HOST}/submissions?base64_encoded=true&wait=true`,
             dto,
             {
               headers: {
-                'x-rapidapi-key': env.JUDGE0.KEY,
-                'x-rapidapi-host': env.JUDGE0.HOST,
+                Authorization: `Bearer ${env.JUDGE0.KEY}`,
+                // 'x-rapidapi-key': env.JUDGE0.KEY,
+                // 'x-rapidapi-host': env.JUDGE0.HOST,
                 'Content-Type': 'application/json',
               },
             },
           )
-          .pipe(map((res) => res.data)),
+          .pipe(map((res) => { return res.data })),
       );
-
+      // console.log(data)
       return data;
     } catch (err) {
+      // console.log(err)
       throw err;
     }
   }
