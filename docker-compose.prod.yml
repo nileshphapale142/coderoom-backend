@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: coderoom-backend:1.0.0
+    image: coderoom-backend:1
     ports: 
       - 8080:8080 
     env_file:
