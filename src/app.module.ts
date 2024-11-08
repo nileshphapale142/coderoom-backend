@@ -13,6 +13,9 @@ import { QuestionController } from './question/question.controller';
 import { SubmissionModule } from './submission/submission.module';
 import { GeminiModule } from './gemini/gemini.module';
 import { Judge0Module } from './judge0/judge0.module';
+import { AdminProvider } from './admin/admin.service';
+import { AdminController } from './admin/admin.controller';
+import { AdminModule } from './admin/admin.module';
 
 
 @Module({
@@ -27,8 +30,9 @@ import { Judge0Module } from './judge0/judge0.module';
     SubmissionModule,
     GeminiModule,
     Judge0Module,
+    AdminModule,
   ],
-  controllers: [UserController, CourseController, TestController, QuestionController],
-  providers: [],
+  controllers: [UserController, CourseController, TestController, QuestionController, AdminController],
+  providers: [AdminProvider],
 })
 export class AppModule {}
