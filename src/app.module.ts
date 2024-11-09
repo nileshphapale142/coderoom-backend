@@ -33,6 +33,6 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   controllers: [UserController, CourseController, TestController, QuestionController, AdminController],
-  providers: [AdminProvider],
+  providers: [],
 })
 export class AppModule {}

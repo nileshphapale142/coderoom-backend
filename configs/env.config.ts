@@ -14,5 +14,10 @@ export const env = {
     
     KEY: process.env.SULU_API_KEY || '',
     HOST: process.env.SULU_API_HOST || ''
+  },
+  
+  ADMIN: {
+    USERANME: process.env.ADMIN_USERNAME  || '',
+    PASSWORD: process.env.ADMIN_PASSWORD || ''
   }
 };
