@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AdminProvider } from './admin.service';
 import { SignInDto, TeacherDTO } from './dto';
 import { Admin } from '@prisma/client';
@@ -25,5 +25,11 @@ export class AdminController {
   @Patch('approve/teacher/:id')
   approveTeacher(@GetUser() admin: Admin, @Param() dto: TeacherDTO) {
     return this.AdminProvider.approveTeacher(admin, dto)
+  }
+  
+  @UseGuards(AdminJwtGuard) 
+  @Delete('decline/teacher/:id')
+  declineTeacher(@GetUser() admin: Admin, @Param() dto: TeacherDTO) {
+    return this.AdminProvider.declineTeacher(admin, dto)
   }
 }

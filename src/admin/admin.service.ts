@@ -91,7 +91,17 @@ export class AdminProvider {
     try {      
       const _ = await this.userService.verifyTeacher(dto.id);
       
-      return {message: "Teacher verified"}
+      return {message: "Teacher verification approved"}
+    } catch(err){
+      throw err
+    }
+  }
+  
+  async declineTeacher(admin:Admin, dto: TeacherDTO) {
+    try {      
+      const _ = await this.userService.deleteTeacher(dto.id);
+      
+      return {message: "Teacher verification declined.\nTeacher removed from the database."}
     } catch(err){
       throw err
     }

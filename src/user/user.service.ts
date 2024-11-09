@@ -69,10 +69,26 @@ export class UserProvider {
     try {
       const user = await this.prismaService.user.update({
         where: {
-          id: id
+          id: id,
+          isTeacher: true
         }, data: {
           adminId: null,
           isVerified: true
+        }
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+    } catch(err) {
+      throw err
+    }
+  }
+  
+  async deleteTeacher(id:number) {
+    try {
+      const user = await this.prismaService.user.delete({
+        where: {
+          id: id,
+          isTeacher: true
         }
       });
 
