@@ -63,4 +63,22 @@ export class UserProvider {
       throw err;
     }
   }
+  
+  
+  async verifyTeacher(id:number) {
+    try {
+      const user = await this.prismaService.user.update({
+        where: {
+          id: id
+        }, data: {
+          adminId: null,
+          isVerified: true
+        }
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+    } catch(err) {
+      throw err
+    }
+  }
 }

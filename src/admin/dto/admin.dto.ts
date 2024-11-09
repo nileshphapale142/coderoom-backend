@@ -1,4 +1,5 @@
-import {  IsNotEmpty, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class SignInDto {
     @IsString()
@@ -10,4 +11,9 @@ export class SignInDto {
     password: string;
 }
 
-
+export class TeacherDTO {
+    @IsInt()
+    @IsNotEmpty()
+    @Transform(({value}) => parseInt(value))
+    id: number; 
+}

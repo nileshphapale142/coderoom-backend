@@ -1,16 +1,18 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { SignInDto } from './dto';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { SignInDto, TeacherDTO } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthProvider } from '../auth/auth.service';
 import * as argon from 'argon2';
 import { env } from 'configs';
 import { Admin } from '@prisma/client';
+import { UserProvider } from 'src/user/user.service';
 
 @Injectable()
 export class AdminProvider {
   constructor(
     private prismaService: PrismaService,
-  private authProvider: AuthProvider) {}
+    private authProvider: AuthProvider, 
+    private userService: UserProvider) {}
   
   async createAdmin() {
     const adminUserName = env.ADMIN.USERANME;
@@ -39,35 +41,59 @@ export class AdminProvider {
   
   
   async signIn(dto: SignInDto) {
-    const admin = await this.prismaService.admin.findUnique({
-      where: {
-        userName: dto.userName,
-      },
-    });
+    try {
+      
+      const admin = await this.prismaService.admin.findUnique({
+        where: {
+          userName: dto.userName,
+        },
+      });
 
-    if (!admin) throw new ForbiddenException('Credentials not found');
+      if (!admin) throw new ForbiddenException('Credentials not found');
 
-    const pwMatches = await argon.verify(admin.password, dto.password);
+      const pwMatches = await argon.verify(admin.password, dto.password);
 
-    if (!pwMatches) throw new ForbiddenException('Wrong password');
+      if (!pwMatches) throw new ForbiddenException('Wrong password');
 
-    return await this.authProvider.signToken(admin.id, admin.userName)
+      return await this.authProvider.signToken(admin.id, admin.userName)
+    } catch(err) {
+      throw err;
+    }
   }
   
   async getUnVerifiedTeachers(admin: Admin) {
+    
+    try {
       
-    const unverified_teachers = (await this.prismaService.admin.findUnique({
-      where: {id: admin.id}, 
-      select: {
-        unVerifiedTeachers: {
-          select: {
-            name: true, 
-            email: true
+      const unverified_teachers = (await this.prismaService.admin.findUnique({
+        where: {id: admin.id}, 
+        select: {
+          unVerifiedTeachers: {
+            select: {
+              name: true, 
+              email: true,
+              id: true
+            }
           }
         }
-      }
-    })).unVerifiedTeachers
+      }))?.unVerifiedTeachers
+      
+      if (!unverified_teachers) throw new NotFoundException('Admin not found')
     
     return { unverified_teachers }
+    } catch(err) {
+      throw err
+    }
+  }
+  
+  
+  async approveTeacher(admin:Admin, dto: TeacherDTO) {
+    try {      
+      const _ = await this.userService.verifyTeacher(dto.id);
+      
+      return {message: "Teacher verified"}
+    } catch(err){
+      throw err
+    }
   }
 }
