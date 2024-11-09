@@ -17,7 +17,6 @@ export class AdminController {
   @UseGuards(AdminJwtGuard)
   @Get('getTeachers')
   getUnVerifiedTeachers(@GetUser() admin:Admin) {
-    console.log(admin)
-    return this.AdminProvider.getUnVerifiedTeachers()
+    return this.AdminProvider.getUnVerifiedTeachers(admin)
   }
 }

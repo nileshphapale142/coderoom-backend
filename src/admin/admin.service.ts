@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthProvider } from '../auth/auth.service';
 import * as argon from 'argon2';
 import { env } from 'configs';
+import { Admin } from '@prisma/client';
 
 @Injectable()
 export class AdminProvider {
@@ -53,7 +54,20 @@ export class AdminProvider {
     return await this.authProvider.signToken(admin.id, admin.userName)
   }
   
-  getUnVerifiedTeachers() {
-    return "get list"
+  async getUnVerifiedTeachers(admin: Admin) {
+      
+    const unverified_teachers = (await this.prismaService.admin.findUnique({
+      where: {id: admin.id}, 
+      select: {
+        unVerifiedTeachers: {
+          select: {
+            name: true, 
+            email: true
+          }
+        }
+      }
+    })).unVerifiedTeachers
+    
+    return { unverified_teachers }
   }
 }

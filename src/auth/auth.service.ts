@@ -33,10 +33,10 @@ export class AuthProvider {
       };
 
       if (!dto.isTeacher) {
-        if (!dto.enrollementId)
+        if (!dto.enrollmentId)
           throw new BadRequestException('Provide have enrollment Id');
         
-        data.enrollmentNo = dto.enrollementId;
+        data.enrollmentNo = dto.enrollmentId;
       }
       
       if (dto.isTeacher) {
