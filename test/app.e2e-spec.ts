@@ -82,7 +82,7 @@ describe('App e2e', () => {
           name: 'Ursa Major',
           email: 'ursa@gmail.com',
           password: '123',
-          enrollementId: '202111063',
+          enrollmentId: '202111063',
           isTeacher: false,
         };
 
@@ -99,7 +99,7 @@ describe('App e2e', () => {
           name: 'Ursa minor',
           email: 'ursamin@gmail.com',
           password: '123',
-          enrollementId: '202111064',
+          enrollmentId: '202111064',
           isTeacher: false,
         };
 
