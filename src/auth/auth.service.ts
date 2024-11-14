@@ -12,6 +12,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { env } from 'configs';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthProvider {
@@ -19,6 +20,7 @@ export class AuthProvider {
     private prismaService: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mailService: MailService
   ) {}
 
   async signUp(dto: SignUpDto) {
@@ -54,7 +56,15 @@ export class AuthProvider {
       });
       
       
-      if (dto.isTeacher) return { access_token: null, in_verification_queue: true }
+      if (dto.isTeacher) {
+        
+        const subject = "Teacher role request on Coderoom"
+        const text = `${user.name} has requested teacher role access.\nApprove or decline it on Coderoom Admin Panel.\n`
+        
+        const verification_mail = await this.mailService.sendMail(env.ADMIN.MAIL, subject, text);
+        
+        return { access_token: null, in_verification_queue: true };
+      } 
       
       const { access_token } =  await this.signToken(user.id, user.email) 
       

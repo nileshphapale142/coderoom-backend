@@ -14,6 +14,7 @@ import { SubmissionModule } from './submission/submission.module';
 import { Judge0Module } from './judge0/judge0.module';
 import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
+import { MailModule } from './mail/mail.module';
 
 
 @Module({
@@ -28,6 +29,7 @@ import { AdminModule } from './admin/admin.module';
     SubmissionModule,
     Judge0Module,
     AdminModule,
+    MailModule,
   ],
   controllers: [UserController, CourseController, TestController, QuestionController, AdminController],
   providers: [],
