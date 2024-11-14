@@ -30,6 +30,7 @@ model Admin {
   id       Int    @id @default(autoincrement())
   userName String @unique
   password String
+  mail     String @unique
   
   unVerifiedTeachers User[]
 }

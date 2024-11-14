@@ -17,6 +17,7 @@ export class AdminProvider {
   async createAdmin() {
     const adminUserName = env.ADMIN.USERANME;
     const adminPassword = env.ADMIN.PASSWORD; 
+    const adminMail = env.ADMIN.MAIL
     
     const existingAdmin = await this.prismaService.admin.findFirst({
       where: { userName: adminUserName },
@@ -33,6 +34,7 @@ export class AdminProvider {
       data: {
         userName: adminUserName,
         password: hashedPassword,
+        mail: adminMail
       },
     });
   
