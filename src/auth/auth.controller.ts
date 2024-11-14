@@ -17,25 +17,13 @@ export class AuthController {
 
   @Post('/signup')
   async signUp(@Body() dto: SignUpDto, @Res({passthrough: true}) response: Response) {
-    const access_token = await this.authProvider.signUp(dto);
+    const { access_token, in_verification_queue} = await this.authProvider.signUp(dto);
 
-    // const expiryDate = new Date();
-    // expiryDate.setDate(expiryDate.getDate() + 30);
-
-    // response.cookie('access_token', access_token, {
-    //     ...this.cookieOptions,
-    //     httpOnly: true,
-    //     expires: expiryDate
-    //   });
-    
-    //   response.cookie('is_teacher', dto.isTeacher, {
-    //     ...this.cookieOptions,
-    //     httpOnly: false,
-    //     expires: expiryDate
-    //   });
-    
     response.header('Content-Type', 'application/json');
-    return { access_token: access_token.access_token, isTeacher: dto.isTeacher };
+      
+    if (in_verification_queue) return { access_token, in_verification_queue };
+    
+    return { access_token, isTeacher: dto.isTeacher };
   }
 
   @Post('/signin')
@@ -43,20 +31,7 @@ export class AuthController {
     const {at, isTeacher } =  await this.authProvider.signIn(dto);
     const { access_token } = at;
 
-    // const expiryDate = new Date()
-    // expiryDate.setDate(expiryDate.getDate() + 30)
-
-    // response.cookie('access_token', access_token, {
-    //     ...this.cookieOptions,
-    //     httpOnly: true,
-    //     expires: expiryDate
-    //   });
-    
-    //   response.cookie('is_teacher', isTeacher, {
-    //     ...this.cookieOptions,
-    //     httpOnly: false,
-    //     expires: expiryDate
-    //   });
+  
     
     response.header('Content-Type', 'application/json');
     

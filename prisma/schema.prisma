@@ -13,12 +13,26 @@ model User {
   email        String  @unique
   password     String
   isTeacher    Boolean @default(false)
+  isVerified   Boolean @default(true)
   enrollmentNo String? @unique
+  
 
   createdCourses    Course[]
   joinedCourses     CourseStudent[]
   questionPoints    StudentQuestion[]
   StudentSubmission StudentSubmission[]
+  
+  adminId     Int?    
+  admin       Admin?  @relation(fields: [adminId], references: [id]) 
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  userName String @unique
+  password String
+  mail     String @unique
+  
+  unVerifiedTeachers User[]
 }
 
 model Course {
@@ -40,7 +54,6 @@ model CourseStudent {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
   @@id([userId, courseId])
 }
 
