@@ -11,8 +11,8 @@ services:
     networks: 
       - coderoom
 
-  prod-server:
-    container_name: prod-server
+  backend-server:
+    container_name: backend-server
     build:
       context: .
       dockerfile: Dockerfile

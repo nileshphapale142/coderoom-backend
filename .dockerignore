@@ -6,6 +6,7 @@ docker-compose.prod.yml
 .git
 .env
 .env.test
+.env.db.prod
 .gitignore
 .gcloudignore
 README.md

@@ -36,7 +36,7 @@ export class AuthProvider {
 
       if (!dto.isTeacher) {
         if (!dto.enrollmentId)
-          throw new BadRequestException('Provide have enrollment Id');
+          throw new BadRequestException('Provide enrollment Id');
         
         data.enrollmentNo = dto.enrollmentId;
       }
