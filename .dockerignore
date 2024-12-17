@@ -2,7 +2,11 @@ node_modules
 dist
 Dockerfile
 docker-compose.yml
+docker-compose.prod.yml
 .git
+.env
+.env.test
+.env.db.prod
 .gitignore
 .gcloudignore
 README.md

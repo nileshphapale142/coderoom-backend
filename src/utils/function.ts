@@ -49,3 +49,8 @@ export function convertToUTC(indianTimeString:string, dateString:string) {
 export function convertToIndianTime(utcDate) {
   return new Date(utcDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
 }
+
+export function combineDateAndTime(dateString: string, timeString: string): Date {
+  const combinedString = `${dateString}T${timeString}:00.000`;
+  return new Date(combinedString);
+}

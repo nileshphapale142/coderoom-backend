@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -9,6 +11,8 @@ import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { env } from 'configs';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthProvider {
@@ -16,13 +20,14 @@ export class AuthProvider {
     private prismaService: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mailService: MailService
   ) {}
 
   async signUp(dto: SignUpDto) {
     const hashPass = await argon.hash(dto.password);
 
     try {
-      const data: any = {
+      let data: any = {
         name: dto.name,
         email: dto.email,
         password: hashPass,
@@ -30,17 +35,41 @@ export class AuthProvider {
       };
 
       if (!dto.isTeacher) {
-        if (!dto.enrollementId)
-          throw new BadRequestException('Provide have enrollment Id');
+        if (!dto.enrollmentId)
+          throw new BadRequestException('Provide enrollment Id');
         
-        data.enrollmentNo = dto.enrollementId;
+        data.enrollmentNo = dto.enrollmentId;
+      }
+      
+      if (dto.isTeacher) {
+        const admin = await this.prismaService.admin.findUnique({
+          where: {
+            userName: env.ADMIN.USERANME
+          }
+        })
+        
+        data = { ...data, isVerified: false, adminId: admin.id }
       }
 
       const user = await this.prismaService.user.create({
         data,
       });
-
-      return this.signToken(user.id, user.email);
+      
+      
+      if (dto.isTeacher) {
+        
+        const subject = "Teacher role request on Coderoom"
+        const text = `${user.name} has requested teacher role access.\nApprove or decline it on Coderoom Admin Panel.\n`
+        
+        const verification_mail = await this.mailService.sendMail(env.ADMIN.MAIL, subject, text);
+        
+        return { access_token: null, in_verification_queue: true };
+      } 
+      
+      const { access_token } =  await this.signToken(user.id, user.email) 
+      
+      return { access_token, in_verification_queue:false} ; 
+      
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError) {
         if (err.code === 'P2002')
@@ -51,6 +80,7 @@ export class AuthProvider {
   }
 
   async signIn(dto: SignInDto) {
+    
     const user = await this.prismaService.user.findUnique({
       where: {
         email: dto.email,
@@ -58,7 +88,13 @@ export class AuthProvider {
     });
 
     if (!user) throw new ForbiddenException('Credentials not found');
-
+    
+    if (!user.isVerified) 
+      throw new HttpException({
+        status: HttpStatus.NOT_ACCEPTABLE,
+        error: 'Your account is pending verification by an administrator. Please wait until verification is completed.',
+      }, HttpStatus.NOT_ACCEPTABLE);
+    
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Wrong password');

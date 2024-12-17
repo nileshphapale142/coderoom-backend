@@ -22,7 +22,7 @@ export class SignUpDto {
     @IsOptional()
     @IsNotEmpty()
     @IsNumberString()
-    enrollementId?: string;
+    enrollmentId?: string;
 }
 
 

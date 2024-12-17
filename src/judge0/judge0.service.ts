@@ -8,27 +8,26 @@ import { CreateSubmissionDTO, GetSubmissionDTO } from './dto';
 @Injectable()
 export class Judge0Service {
   constructor(private readonly httpService: HttpService) {}
-
   async createSubmission(dto: CreateSubmissionDTO) {
     try {
       const data = await lastValueFrom(
         this.httpService
           .post(
-            `https://${env.JUDGE0.HOST}/submissions/?base64_encoded=true&wait=true`,
+            `${env.JUDGE0.HOST}/submissions?base64_encoded=true&wait=true`,
+            
             dto,
             {
               headers: {
-                'x-rapidapi-key': env.JUDGE0.KEY,
-                'x-rapidapi-host': env.JUDGE0.HOST,
+                Authorization: `Bearer ${env.JUDGE0.KEY}`,
                 'Content-Type': 'application/json',
               },
             },
           )
-          .pipe(map((res) => res.data)),
+          .pipe(map((res) => { return res.data })),
       );
-
       return data;
     } catch (err) {
+      console.log(err)
       throw err;
     }
   }
@@ -38,7 +37,7 @@ export class Judge0Service {
       const data = await lastValueFrom(
         this.httpService
           .post(
-            `https://${env.JUDGE0.HOST}/submissions/batch?base64_encoded=true`,
+            `${env.JUDGE0.HOST}/submissions/batch?base64_encoded=true`,
             {
               headers: {
                 'x-rapidapi-key': env.JUDGE0.KEY,
@@ -62,7 +61,7 @@ export class Judge0Service {
     try {
       const data = await lastValueFrom(
         this.httpService.get(
-          `https://${env.JUDGE0.HOST}/submissions/${dto.token}`,
+          `${env.JUDGE0.HOST}/submissions/${dto.token}`,
           {
             headers: {
               'x-rapidapi-key': env.JUDGE0.KEY,
@@ -81,7 +80,7 @@ export class Judge0Service {
     try {
       const data = await lastValueFrom(
         this.httpService
-          .get(`https://${env.JUDGE0.HOST}/about`, {
+          .get(`${env.JUDGE0.HOST}/about`, {
             headers: {
               'x-rapidapi-key': env.JUDGE0.KEY,
               'x-rapidapi-host': env.JUDGE0.HOST,
@@ -99,7 +98,7 @@ export class Judge0Service {
   async getLanguages() {
     try {
       const data = await lastValueFrom(
-        this.httpService.get(`https://${env.JUDGE0.HOST}/languages`, {
+        this.httpService.get(`${env.JUDGE0.HOST}/languages`, {
           headers: {
             'x-rapidapi-key': env.JUDGE0.KEY,
             'x-rapidapi-host': env.JUDGE0.HOST,
@@ -117,7 +116,7 @@ export class Judge0Service {
     try {
       const data = await lastValueFrom(
         this.httpService.get(
-          `https://${env.JUDGE0.HOST}/language/${id}`,
+          `${env.JUDGE0.HOST}/language/${id}`,
           {
             headers: {
               'x-rapidapi-key': env.JUDGE0.KEY,
@@ -136,7 +135,7 @@ export class Judge0Service {
   async getStatuses() {
     try {
       const data = await lastValueFrom(
-        this.httpService.get(`https://${env.JUDGE0.HOST}/statuses`, {
+        this.httpService.get(`${env.JUDGE0.HOST}/statuses`, {
           headers: {
             'x-rapidapi-key': env.JUDGE0.KEY,
             'x-rapidapi-host': env.JUDGE0.HOST,
