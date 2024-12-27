@@ -2,7 +2,7 @@
 
 This is the official repository of Coderoom's backend.
 
-Coderoom is an education platform designed for coding courses in institutions.
+Coderoom is an educational platform designed for coding courses in institutions.
 Coderoom allows teachers to create coding tests inside classrooms and students to 
 attempt these tests in given time frame and allowed programming languages. Coderoom 
 provides learboard for both individual tests and entire class. Coderoom also supports dynamic
@@ -12,7 +12,7 @@ For "How to use Coderoom?" refer to official
 [Coderoom-Frontend](https://github.com/nileshphapale142/coderoom-frontend)
 repository.
 
-## Deploy Coderoom-Backend on personal server
+## Deploy Coderoom-Backend 
 
 ### Prerequisites 
 - Docker
@@ -56,9 +56,9 @@ DATABASE_URL="postgresql://<postgres-user>:<postgres-password>@prod-db:5432/<dat
 POSTGRES_USER="<postgres-user>"
 POSTGRES_PASSWORD="<postgres-password>"
 POSTGRES_DB="<database-name>"
-JWT_SECRET="super-secret"
-JUDGE0_API_KEY="<judge0-sulu-api-key>"
-JUDGE0_API_HOST="<judge0-sulu-host>"
+JWT_SECRET="<super-secret>"
+JUDGE0_API_KEY="<judge0-api-key>"
+JUDGE0_API_HOST="<judge0-host>"
 ADMIN_USERNAME="<admin-username>"
 ADMIN_PASSWORD="<admin-password>"
 ADMIN_MAIL="<admin-email>"
@@ -67,12 +67,14 @@ MAIL_PASSWORD="<coderoom gmail app password>"
 ```
 Replace necessary details above.
 
-5. Make sure coderoom docker network is created
+For Judge0 you can use [SULU API](https://platform.sulu.sh/apis/judge0/judge0-ce/readme) API or can [deploy youself](https://github.com/judge0/judge0/blob/master/CHANGELOG.md#deployment-procedure).   
+
+5. Make sure coderoom network is created in docker
 ```bash
 docker network create coderoom
 ```
 
-6. Start Database container.
+6. Start Database container
 ```bash
 docker compose -f docker-compose.prod.yml up -d prod-db
 ```
@@ -86,3 +88,5 @@ npm run prisma:prod:deploy
 ```bash
 docker compose -f docker-compose.prod.yml up -d backend-server
 ```
+
+9. Backend server will be running on [`http://localhost:8080`](http://localhost:8080)
